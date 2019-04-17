@@ -4,7 +4,8 @@
   "description": "AdEx Adview manager library",
   "main": "index.js",
   "scripts": {
-    "test": "node test/*"
+    "test": "node test/*",
+    "build": "tsc && tsc -p tsconfig.browser.json"
   },
   "repository": {
     "type": "git",
