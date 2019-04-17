@@ -1,0 +1,22 @@
+{
+  "name": "adex-adview-manager",
+  "version": "1.0.0",
+  "description": "AdEx Adview manager library",
+  "main": "index.js",
+  "scripts": {
+    "test": "node test/*"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AdExNetwork/adex-adview-manager.git"
+  },
+  "keywords": [
+    "adex"
+  ],
+  "author": "AdEx Network",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/AdExNetwork/adex-adview-manager/issues"
+  },
+  "homepage": "https://github.com/AdExNetwork/adex-adview-manager#readme"
+}
