@@ -15,11 +15,18 @@
   "keywords": [
     "adex"
   ],
-  "files": ["lib", "dist.browser"],
+  "files": [
+    "lib",
+    "dist.browser"
+  ],
   "author": "AdEx Network",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/AdExNetwork/adex-adview-manager/issues"
   },
-  "homepage": "https://github.com/AdExNetwork/adex-adview-manager#readme"
+  "homepage": "https://github.com/AdExNetwork/adex-adview-manager#readme",
+  "dependencies": {
+    "bn.js": "^4.11.8",
+    "node-fetch": "^2.3.0"
+  }
 }
