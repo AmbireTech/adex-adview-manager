@@ -44,7 +44,8 @@ export class AdViewManager {
 				STATUS_OK.includes(x.status.name)
 				&& Array.isArray(x.spec.adUnits)
 				&& x.depositAsset === this.options.whitelistedToken
-				&& new BN(x.spec.minPerImpression).gte(new BN(this.options.minPerImpression || 0))
+				&& new BN(x.spec.minPerImpression)
+					.gte(new BN(this.options.minPerImpression || 0))
 			)
 
 		// Map them to units, flatten and sort by price

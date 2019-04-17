@@ -1,9 +1,0 @@
-{
-  "compilerOptions": {
-    "outFile": "./dist.browser/index.js",
-    "target": "es5",
-    "module": "amd",
-    "lib": ["dom", "es6"]
-  },
-  "include": ["src"]
-}
