@@ -48,7 +48,7 @@ export class AdViewManager {
 					.gte(new BN(this.options.minPerImpression || 0))
 			)
 
-		// Map them to units, flatten and sort by price
+		// Map them to units, flatten
 		const units = eligible
 			.map(campaign =>
 				campaign.spec.adUnits.map(unit => ({
@@ -57,17 +57,22 @@ export class AdViewManager {
 					minPerImpression: campaign.spec.minPerImpression
 				}))
 			)
-			.reduce((a, b) => a.concat(b), [])
+			.reduce((a, b) => a.concat(b), []);
+
+		const unitsByPrice = units
 			.sort((b, a) => new BN(a.minPerImpression).cmp(new BN(b.minPerImpression)));
 
 		const unitsTop = this.options.topByPrice
-			? units.slice(0, this.options.topByPrice)
-			: units;
+			? unitsByPrice.slice(0, this.options.topByPrice)
+			: unitsByPrice;
 
-		const unitsWithScore = unitsTop.map(x => ({
-			...x,
-			targetingScore: calculateTargetScore(x.unit.targeting, this.options.targeting || []),
-		}))
-		return unitsWithScore;
+		const unitsByScore = unitsTop
+			.map(x => ({
+				...x,
+				targetingScore: calculateTargetScore(x.unit.targeting, this.options.targeting || []),
+			}))
+			.sort((a, b) => b - a);
+
+		return unitsByScore;
 	}
 }
