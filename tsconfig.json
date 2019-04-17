@@ -1,7 +1,8 @@
 {
   "compilerOptions": {
     "lib": ["es6", "dom"],
-    "outDir": "lib"
+    "outDir": "lib",
+    "target": "es2018"
   },
   "include": ["src"]
 }
