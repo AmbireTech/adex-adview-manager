@@ -6,12 +6,15 @@ interface TargetTag {
 	tag: string,
 	score: number
 }
-// opts: targeting, topByPrice, whitelistedToken, minPerImpression, marketURL
+// opts: minPerImpression, marketURL
 // future: doubleCheck, refreshDebounce, useIdentity, channelWhitelist
+type BigNumStr = string;
 interface AdViewManagerOptions {
 	whitelistedToken: string,
 	topByPrice: number,
+	minPerImpression?: BigNumStr,
 	targeting: Array<TargetTag>
+	// @TODO debounce
 }
 
 function calculateTargetScore(a: Array<TargetTag>, b: Array<TargetTag>): number {
@@ -31,7 +34,6 @@ export class AdViewManager {
 		this.fetch = fetch;
 		this.options = opts;
 	}
-	// @TODO type info for opts
 	async getAdUnits(): Promise<any> {
 		const campaigns = await this.fetch(`${MARKET_URL}/campaigns`).then(r => r.json());
 
@@ -41,6 +43,7 @@ export class AdViewManager {
 				(x.status.name === 'Active' || x.status.name === 'Ready')
 				&& Array.isArray(x.spec.adUnits) && x.spec.adUnits.length
 				&& x.depositAsset === this.options.whitelistedToken
+				&& new BN(x.spec.minPerImpression).gte(new BN(this.options.minPerImpression || 0))
 			)
 
 		// Map them to units, flatten and sort by price
