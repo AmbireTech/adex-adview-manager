@@ -1,4 +1,4 @@
-import { BN } from '../vendor/bn.js';
+import { BN } from './vendor/bn.js';
 
 const MARKET_URL = 'https://market.adex.network';
 
