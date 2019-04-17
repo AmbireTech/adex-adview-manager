@@ -42,7 +42,7 @@ export class AdViewManager {
 		const eligible = campaigns
 			.filter(x =>
 				STATUS_OK.includes(x.status.name)
-				&& Array.isArray(x.spec.adUnits) && x.spec.adUnits.length
+				&& Array.isArray(x.spec.adUnits)
 				&& x.depositAsset === this.options.whitelistedToken
 				&& new BN(x.spec.minPerImpression).gte(new BN(this.options.minPerImpression || 0))
 			)
