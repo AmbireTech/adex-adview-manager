@@ -17,10 +17,13 @@ export class AdViewManager {
 	}
 	// @TODO type info for opts
 	async getAdView(): Promise<string> {
-		const campaigns = (await this.fetch(`${MARKET_URL}/campaigns`).then(r => r.json()))
-			.filter(x => x.status.name === 'Active' || x.status.name === 'Ready')
-			.filter(x => Array.isArray(x.spec.adUnits) && x.spec.adUnits.length)
-			.filter(x => x.depositAsset === this.options.whitelistedToken)
+		const campaigns = await this.fetch(`${MARKET_URL}/campaigns`).then(r => r.json());
+		const eligible = campaigns
+			.filter(x =>
+				x.status.name === 'Active' || x.status.name === 'Ready'
+				&& Array.isArray(x.spec.adUnits) && x.spec.adUnits.length
+				&& x.depositAsset === this.options.whitelistedToken
+			)
 			.sort((a, b) => new BN(a.spec.minPerImpression).cmp(new BN(b.spec.minPerImpression)))
 		
 		return "";
