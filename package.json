@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "node test/*",
+    "prepublish": "tsc && tsc -p tsconfig.browser.json",
     "build": "tsc && tsc -p tsconfig.browser.json"
   },
   "repository": {
@@ -14,6 +15,7 @@
   "keywords": [
     "adex"
   ],
+  "files": ["lib", "dist.browser"],
   "author": "AdEx Network",
   "license": "MIT",
   "bugs": {
