@@ -53,7 +53,7 @@ function applyTargeting(campaigns: Array<any>, options: AdViewManagerOptions): A
 			...x,
 			targetingScore: calculateTargetScore(x.unit.targeting, options.targeting || []),
 		}))
-		.sort((a, b) => b - a);
+		.sort((a, b) => b.targetingScore - a.targetingScore);
 
 	return unitsByScore;
 }
