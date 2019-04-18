@@ -43,6 +43,7 @@ function applyTargeting(campaigns: Array<any>, options: AdViewManagerOptions): A
 				unit,
 				channelId: campaign.id,
 				validators: campaign.spec.validators,
+				minTargetingScore: unit.minTargetingScore || campaign.spec.minTargetingScore || 0,
 				minPerImpression: campaign.spec.minPerImpression,
 			}))
 		)
@@ -60,7 +61,10 @@ function applyTargeting(campaigns: Array<any>, options: AdViewManagerOptions): A
 			...x,
 			targetingScore: calculateTargetScore(x.unit.targeting, options.targeting || []),
 		}))
-		.filter(x => x.targetingScore >= options.minTargetingScore)
+		.filter(x =>
+			x.targetingScore >= options.minTargetingScore
+			&& x.targetingScore >= x.minTargetingScore
+		)
 		.sort((a, b) => b.targetingScore - a.targetingScore)
 
 	return unitsByScore
