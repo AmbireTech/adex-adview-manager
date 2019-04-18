@@ -2,6 +2,7 @@ import { BN } from 'bn.js';
 
 const MARKET_URL = 'https://market.adex.network';
 const STATUS_OK = ['Active', 'Ready'];
+const UNIT_DEBOUNCE = 60 * 1000;
 
 interface TargetTag {
 	tag: string,
@@ -35,6 +36,7 @@ function applyTargeting(campaigns: Array<any>, options: AdViewManagerOptions): A
 			campaign.spec.adUnits.map(unit => ({
 				unit,
 				channelId: campaign.id,
+				validators: campaign.spec.validators,
 				minPerImpression: campaign.spec.minPerImpression
 			}))
 		)
@@ -60,6 +62,7 @@ function applyTargeting(campaigns: Array<any>, options: AdViewManagerOptions): A
 export class AdViewManager {
 	private fetch: any;
 	private options: AdViewManagerOptions;
+	private timesShown: { [key: string]: number };
 	constructor(fetch, opts: AdViewManagerOptions) {
 		this.fetch = fetch;
 		this.options = opts;
@@ -76,5 +79,17 @@ export class AdViewManager {
 					.gte(new BN(this.options.minPerImpression || 0))
 		});
 		return applyTargeting(eligible, this.options);
+	}
+	async getNextAdUnit(): Promise<any> {
+		const units = await this.getAdUnits();
+		const min = Object.values(this.timesShown).reduce((a, b) => Math.min(a, b), 0);
+		const leastShownUnits = units.filter(({ channelId }) => this.timesShown[channelId] === min);
+		const next = leastShownUnits[0];
+		if (!next) return null;
+		this.timesShown[next.channelId] = (this.timesShown[next.channelId] || 0) + 1;
+		return next;
+	}
+	getHTML({ unit, channelId, validators }): string {
+		return "";
 	}
 }
