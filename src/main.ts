@@ -99,6 +99,7 @@ export class AdViewManager {
 		// Eligible campaigns
 		const eligible = campaigns.filter(campaign => {
 			return this.options.acceptedStates.includes(campaign.status.name)
+				&& campaign.spec.created < Date.now()
 				&& Array.isArray(campaign.spec.adUnits)
 				&& campaign.depositAsset === this.options.whitelistedToken
 				&& new BN(campaign.spec.minPerImpression)
