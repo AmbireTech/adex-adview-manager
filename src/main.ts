@@ -9,7 +9,7 @@ interface TargetTag {
 	tag: string,
 	score: number
 }
-// future: doubleCheck, refreshDebounce, useIdentity, channelWhitelist
+
 type BigNumStr = string
 interface AdViewManagerOptions {
 	marketURL: string,
