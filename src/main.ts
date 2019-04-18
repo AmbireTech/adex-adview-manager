@@ -71,7 +71,8 @@ export class AdViewManager {
 		this.timesShown = {};
 	}
 	async getAdUnits(): Promise<any> {
-		const campaigns = await this.fetch(`${MARKET_URL}/campaigns?status=${STATUS_OK.join(',')}`).then(r => r.json());
+		const url = `${MARKET_URL}/campaigns?status=${STATUS_OK.join(',')}`;
+		const campaigns = await this.fetch(url).then(r => r.json());
 
 		// Eligible campaigns
 		const eligible = campaigns.filter(campaign => {
