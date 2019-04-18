@@ -2,7 +2,9 @@ import { BN } from 'bn.js'
 
 const defaultOpts = {
 	marketURL: 'https://market.adex.network',
-	acceptedStates: ['Active', 'Ready']
+	acceptedStates: ['Active', 'Ready'],
+	minPerImpression: '0',
+	minTargetingScore: 0,
 }
 
 interface TargetTag {
@@ -18,7 +20,8 @@ interface AdViewManagerOptions {
 	whitelistedToken: string,
 	topByPrice: number,
 	minPerImpression?: BigNumStr,
-	targeting: Array<TargetTag>
+	targeting: Array<TargetTag>,
+	minTargetingScore?: number,
 	// @TODO debounce
 }
 
@@ -57,6 +60,7 @@ function applyTargeting(campaigns: Array<any>, options: AdViewManagerOptions): A
 			...x,
 			targetingScore: calculateTargetScore(x.unit.targeting, options.targeting || []),
 		}))
+		.filter(x => x.targetingScore >= options.minTargetingScore)
 		.sort((a, b) => b.targetingScore - a.targetingScore)
 
 	return unitsByScore
@@ -105,7 +109,7 @@ export class AdViewManager {
 				&& Array.isArray(campaign.spec.adUnits)
 				&& campaign.depositAsset === this.options.whitelistedToken
 				&& new BN(campaign.spec.minPerImpression)
-					.gte(new BN(this.options.minPerImpression || 0))
+					.gte(new BN(this.options.minPerImpression))
 		})
 		return applyTargeting(eligible, this.options)
 	}
