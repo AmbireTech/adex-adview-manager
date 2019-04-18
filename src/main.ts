@@ -77,7 +77,9 @@ function getHTML(publisher, { unit, channelId, validators }): string {
 			return `fetch('${fetchUrl}', ${fetchOpts})`
 		})
 		.join(';')
-	return `<img src="${imgUrl}" data-event-body='${evBody}' alt="AdEx ad" rel="nofollow" onload="${onLoadCode}"></img>`
+	return `<a href="${unit.targetUrl}" target="_blank">`
+		+`<img src="${imgUrl}" data-event-body='${evBody}' alt="AdEx ad" rel="nofollow" onload="${onLoadCode}"></img>`
+		+`</a>`
 }
 
 export class AdViewManager {
