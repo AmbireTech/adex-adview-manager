@@ -1,16 +1,19 @@
 import { BN } from 'bn.js'
 
-const MARKET_URL = 'https://market.adex.network'
-const STATUS_OK = ['Active', 'Ready']
+const defaultOpts = {
+	marketURL: 'https://market.adex.network',
+	acceptedStates: ['Active', 'Ready']
+}
 
 interface TargetTag {
 	tag: string,
 	score: number
 }
-// opts: minPerImpression, marketURL
 // future: doubleCheck, refreshDebounce, useIdentity, channelWhitelist
 type BigNumStr = string
 interface AdViewManagerOptions {
+	marketURL: string,
+	acceptedStates: Array<string>,
 	publisherAddr: string,
 	whitelistedToken: string,
 	topByPrice: number,
@@ -86,16 +89,16 @@ export class AdViewManager {
 	}
 	constructor(fetch, opts: AdViewManagerOptions) {
 		this.fetch = fetch
-		this.options = opts
+		this.options = { ...defaultOpts, ...opts }
 		this.timesShown = {}
 	}
 	async getAdUnits(): Promise<any> {
-		const url = `${MARKET_URL}/campaigns?status=${STATUS_OK.join(',')}`
+		const url = `${this.options.marketURL}/campaigns?status=${this.options.acceptedStates.join(',')}`
 		const campaigns = await this.fetch(url).then(r => r.json())
 
 		// Eligible campaigns
 		const eligible = campaigns.filter(campaign => {
-			return STATUS_OK.includes(campaign.status.name)
+			return this.options.acceptedStates.includes(campaign.status.name)
 				&& Array.isArray(campaign.spec.adUnits)
 				&& campaign.depositAsset === this.options.whitelistedToken
 				&& new BN(campaign.spec.minPerImpression)
