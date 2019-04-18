@@ -63,12 +63,16 @@ export class AdViewManager {
 	private fetch: any;
 	private options: AdViewManagerOptions;
 	private timesShown: { [key: string]: number };
+	private getTimesShown(channelId: string): number {
+		return this.timesShown[channelId] || 0;	
+	}
 	constructor(fetch, opts: AdViewManagerOptions) {
 		this.fetch = fetch;
 		this.options = opts;
+		this.timesShown = {};
 	}
 	async getAdUnits(): Promise<any> {
-		const campaigns = await this.fetch(`${MARKET_URL}/campaigns`).then(r => r.json());
+		const campaigns = await this.fetch(`${MARKET_URL}/campaigns?status=${STATUS_OK.join(',')}`).then(r => r.json());
 
 		// Eligible campaigns
 		const eligible = campaigns.filter(campaign => {
@@ -82,14 +86,15 @@ export class AdViewManager {
 	}
 	async getNextAdUnit(): Promise<any> {
 		const units = await this.getAdUnits();
-		const min = Object.values(this.timesShown).reduce((a, b) => Math.min(a, b), 0);
-		const leastShownUnits = units.filter(({ channelId }) => this.timesShown[channelId] === min);
+		const values = units.map(({ channelId }) => this.getTimesShown(channelId));
+		const min = values.reduce((a, b) => Math.min(a, b));
+		const leastShownUnits = units.filter(({ channelId }) => this.getTimesShown(channelId) === min);
 		const next = leastShownUnits[0];
 		if (!next) return null;
-		this.timesShown[next.channelId] = (this.timesShown[next.channelId] || 0) + 1;
+		this.timesShown[next.channelId] = this.getTimesShown(next.channelId) + 1;
 		return next;
 	}
 	getHTML({ unit, channelId, validators }): string {
-		return "";
+		return '';
 	}
 }
