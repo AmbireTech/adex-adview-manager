@@ -2,7 +2,6 @@ import { BN } from 'bn.js';
 
 const MARKET_URL = 'https://market.adex.network';
 const STATUS_OK = ['Active', 'Ready'];
-const UNIT_DEBOUNCE = 60 * 1000;
 
 interface TargetTag {
 	tag: string,
@@ -86,11 +85,13 @@ export class AdViewManager {
 	}
 	async getNextAdUnit(): Promise<any> {
 		const units = await this.getAdUnits();
-		const values = units.map(({ channelId }) => this.getTimesShown(channelId));
-		const min = values.reduce((a, b) => Math.min(a, b));
-		const leastShownUnits = units.filter(({ channelId }) => this.getTimesShown(channelId) === min);
+		if (units.length === 0) return null;
+		const min = units
+			.map(({ channelId }) => this.getTimesShown(channelId))
+			.reduce((a, b) => Math.min(a, b));
+		const leastShownUnits = units
+			.filter(({ channelId }) => this.getTimesShown(channelId) === min);
 		const next = leastShownUnits[0];
-		if (!next) return null;
 		this.timesShown[next.channelId] = this.getTimesShown(next.channelId) + 1;
 		return next;
 	}
