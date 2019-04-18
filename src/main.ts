@@ -11,6 +11,7 @@ interface TargetTag {
 // future: doubleCheck, refreshDebounce, useIdentity, channelWhitelist
 type BigNumStr = string;
 interface AdViewManagerOptions {
+	publisherAddr: string,
 	whitelistedToken: string,
 	topByPrice: number,
 	minPerImpression?: BigNumStr,
@@ -37,7 +38,6 @@ function applyTargeting(campaigns: Array<any>, options: AdViewManagerOptions): A
 				channelId: campaign.id,
 				validators: campaign.spec.validators,
 				minPerImpression: campaign.spec.minPerImpression,
-				html: getHTML('', campaign, unit),
 			}))
 		)
 		.reduce((a, b) => a.concat(b), []);
@@ -64,16 +64,17 @@ function normalizeUrl(url: string): string {
 	return url;
 }
 
-function getHTML(publisher, campaign, unit): string {
+function getHTML(publisher, { unit, channelId, validators }): string {
 	const imgUrl = normalizeUrl(unit.mediaUrl);
-	const onLoadCode = campaign.spec.validators
+	const evBody = JSON.stringify({ events: [{ type: 'IMPRESSION', publisher }] });
+	const onLoadCode = validators
 		.map(({ url }) => {
-			const evBody = JSON.stringify({ events: [{ type: 'IMPRESSION', publisher }] });
-			// Double-stringify the body to escape the JSON string
-			return `fetch('${url}/channel/${campaign.id}/events', { method: 'POST', headers: { 'content-type': 'application/json' }, body: ${JSON.stringify(evBody)} })`;
+			const fetchOpts = `{ method: 'POST', headers: { 'content-type': 'application/json' }, body: this.dataset.eventBody }`;
+			const fetchUrl = `${url}/channel/${channelId}/events`;
+			return `fetch('${fetchUrl}', ${fetchOpts})`;
 		})
 		.join(';')
-	return `<img src="${imgUrl}" alt="AdEx ad" rel="nofollow" onload="${onLoadCode}"></img>`;
+	return `<img src="${imgUrl}" data-event-body='${evBody}' alt="AdEx ad" rel="nofollow" onload="${onLoadCode}"></img>`;
 }
 
 export class AdViewManager {
@@ -112,6 +113,6 @@ export class AdViewManager {
 			.filter(({ channelId }) => this.getTimesShown(channelId) === min);
 		const next = leastShownUnits[0];
 		this.timesShown[next.channelId] = this.getTimesShown(next.channelId) + 1;
-		return next;
+		return { ...next, html: getHTML(this.options.publisherAddr, next) };
 	}
 }
