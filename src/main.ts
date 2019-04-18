@@ -36,7 +36,8 @@ function applyTargeting(campaigns: Array<any>, options: AdViewManagerOptions): A
 				unit,
 				channelId: campaign.id,
 				validators: campaign.spec.validators,
-				minPerImpression: campaign.spec.minPerImpression
+				minPerImpression: campaign.spec.minPerImpression,
+				html: getHTML(campaign, unit),
 			}))
 		)
 		.reduce((a, b) => a.concat(b), []);
@@ -56,6 +57,16 @@ function applyTargeting(campaigns: Array<any>, options: AdViewManagerOptions): A
 		.sort((a, b) => b.targetingScore - a.targetingScore);
 
 	return unitsByScore;
+}
+
+function normalizeUrl(url: string): string {
+	if (url.startsWith('ipfs://')) return `https://gateway.ipfs.io/ipfs/${url.slice(7)}`
+	return url;
+}
+
+function getHTML(campaign, unit): string {
+	const imgUrl = normalizeUrl(unit.mediaUrl);
+	return `<img src="${imgUrl}" alt="AdEx ad" rel="nofollow" onload="console.log('loaded')"></img>`;
 }
 
 export class AdViewManager {
@@ -95,8 +106,5 @@ export class AdViewManager {
 		const next = leastShownUnits[0];
 		this.timesShown[next.channelId] = this.getTimesShown(next.channelId) + 1;
 		return next;
-	}
-	getHTML({ unit, channelId, validators }): string {
-		return '';
 	}
 }
