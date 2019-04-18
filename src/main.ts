@@ -37,7 +37,7 @@ function applyTargeting(campaigns: Array<any>, options: AdViewManagerOptions): A
 				channelId: campaign.id,
 				validators: campaign.spec.validators,
 				minPerImpression: campaign.spec.minPerImpression,
-				html: getHTML(campaign, unit),
+				html: getHTML('', campaign, unit),
 			}))
 		)
 		.reduce((a, b) => a.concat(b), []);
@@ -64,9 +64,16 @@ function normalizeUrl(url: string): string {
 	return url;
 }
 
-function getHTML(campaign, unit): string {
+function getHTML(publisher, campaign, unit): string {
 	const imgUrl = normalizeUrl(unit.mediaUrl);
-	return `<img src="${imgUrl}" alt="AdEx ad" rel="nofollow" onload="console.log('loaded')"></img>`;
+	const onLoadCode = campaign.spec.validators
+		.map(({ url }) => {
+			const evBody = JSON.stringify({ events: [{ type: 'IMPRESSION', publisher }] });
+			// Double-stringify the body to escape the JSON string
+			return `fetch('${url}/channel/${campaign.id}/events', { method: 'POST', headers: { 'content-type': 'application/json' }, body: ${JSON.stringify(evBody)} })`;
+		})
+		.join(';')
+	return `<img src="${imgUrl}" alt="AdEx ad" rel="nofollow" onload="${onLoadCode}"></img>`;
 }
 
 export class AdViewManager {
