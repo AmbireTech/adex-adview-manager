@@ -17,14 +17,14 @@ async function run() {
 run()
 ```
 
-Constructor:
+### Constructor:
 
 `const mgr = new AdViewManager(fetch, opts)`
 
 For the available options, see https://github.com/AdExNetwork/adex-adview-manager/blob/master/src/main.ts#L18
 
 
-Methods:
+### Methods:
 
 * `mgr.getAdUnits()`: returns a promise that resolves with all ad units from currently active campaigns; applies targeting and filtering
 * `mgr.getNextAdUnit()`: returns a promise that returns the least seen unit from `getAdUnits()`; use this in your app to get the next ad unit to show
