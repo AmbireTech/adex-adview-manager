@@ -17,6 +17,13 @@ async function run() {
 run()
 ```
 
+Constructor:
+
+`const mgr = new AdViewManager(fetch, opts)`
+
+For the available options, see https://github.com/AdExNetwork/adex-adview-manager/blob/master/src/main.ts#L18
+
+
 Methods:
 
 * `mgr.getAdUnits()`: returns a promise that resolves with all ad units from currently active campaigns; applies targeting and filtering
@@ -24,4 +31,3 @@ Methods:
 
 The object format that those functions return is `{ unit, channelId, html }`
 
-For the available options, see https://github.com/AdExNetwork/adex-adview-manager/blob/master/src/main.ts#L18
