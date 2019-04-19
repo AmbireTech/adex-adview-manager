@@ -88,7 +88,7 @@ function getHTML(publisher, { unit, channelId, validators }): string {
 		})
 		.join(';')
 	return `<a href="${unit.targetUrl}" target="_blank">`
-		+`<img src="${imgUrl}" data-event-body='${evBody}' alt="AdEx ad" rel="nofollow" onload="${onLoadCode}"></img>`
+		+`<img src="${imgUrl}" data-event-body='${evBody}' alt="AdEx ad" rel="nofollow" onload="${onLoadCode}">`
 		+`</a>`
 }
 
