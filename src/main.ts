@@ -1,5 +1,7 @@
 import { BN } from 'bn.js'
 
+const IPFS_GATEWAY = 'https://gateway.ipfs.io/ipfs/'
+
 const defaultOpts = {
 	marketURL: 'https://market.adex.network',
 	acceptedStates: ['Active', 'Ready'],
@@ -71,7 +73,7 @@ function applyTargeting(campaigns: Array<any>, options: AdViewManagerOptions): A
 }
 
 function normalizeUrl(url: string): string {
-	if (url.startsWith('ipfs://')) return `https://gateway.ipfs.io/ipfs/${url.slice(7)}`
+	if (url.startsWith('ipfs://')) return `${IPFS_GATEWAY}${url.slice(7)}`
 	return url
 }
 
