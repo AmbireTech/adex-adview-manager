@@ -31,3 +31,10 @@ For the available options, see https://github.com/AdExNetwork/adex-adview-manage
 
 The object format that those functions return is `{ unit, channelId, html }`
 
+
+
+## Build a browser version
+
+```
+webpack --mode production
+```
