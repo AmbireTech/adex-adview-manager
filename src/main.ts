@@ -1,6 +1,6 @@
 import { BN } from 'bn.js'
 
-const IPFS_GATEWAY = 'https://gateway.ipfs.io/ipfs/'
+const IPFS_GATEWAY = 'https://ipfs.adex.network/ipfs/'
 
 const defaultOpts = {
 	marketURL: 'https://market.adex.network',
