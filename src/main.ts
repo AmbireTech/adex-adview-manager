@@ -24,6 +24,7 @@ interface AdViewManagerOptions {
 	// Must be passed (eexcept the ones with ?)
 	publisherAddr: string,
 	whitelistedToken: string,
+	whitelistedType?: string,
 	topByPrice?: number,
 	targeting?: Array<TargetTag>,
 	// @TODO debounce
@@ -60,7 +61,11 @@ function applyTargeting(campaigns: Array<any>, options: AdViewManagerOptions): A
 		? unitsByPrice.slice(0, options.topByPrice)
 		: unitsByPrice
 
-	const unitsByScore = unitsTop
+	const unitsTopFiltered = options.whitelistedType
+		? unitsTop.filter(x => x.unit.type === options.whitelistedType)
+		: unitsTop
+
+	const unitsByScore = unitsTopFiltered
 		.map(x => ({
 			...x,
 			targetingScore: calculateTargetScore(x.unit.targeting, options.targeting || []),
