@@ -16,14 +16,16 @@ interface TargetTag {
 
 type BigNumStr = string
 interface AdViewManagerOptions {
+	// Defaulted via defaultOpts
 	marketURL: string,
 	acceptedStates: Array<string>,
+	minPerImpression: BigNumStr,
+	minTargetingScore: number,
+	// Must be passed
 	publisherAddr: string,
 	whitelistedToken: string,
 	topByPrice: number,
-	minPerImpression?: BigNumStr,
 	targeting: Array<TargetTag>,
-	minTargetingScore?: number,
 	// @TODO debounce
 }
 
