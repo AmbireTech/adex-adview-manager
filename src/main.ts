@@ -21,11 +21,11 @@ interface AdViewManagerOptions {
 	acceptedStates: Array<string>,
 	minPerImpression: BigNumStr,
 	minTargetingScore: number,
-	// Must be passed
+	// Must be passed (eexcept the ones with ?)
 	publisherAddr: string,
 	whitelistedToken: string,
-	topByPrice: number,
-	targeting: Array<TargetTag>,
+	topByPrice?: number,
+	targeting?: Array<TargetTag>,
 	// @TODO debounce
 }
 
