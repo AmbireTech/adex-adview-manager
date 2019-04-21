@@ -45,7 +45,8 @@ webpack --mode production
 ```javascript
 const options = {
 	publisherAddr: '0xd6e371526cdaeE04cd8AF225D42e37Bc14688D9E',
-	whitelistedToken: '0x7af963cF6D228E564e2A0aA0DdBF06210B38615D'
+	whitelistedToken: '0x7af963cF6D228E564e2A0aA0DdBF06210B38615D',
+	whitelistedType: 'legacy_300x250'
 }
 const url = `index.html#${encodeURIComponent(JSON.stringify({ options }))}`
 ```
