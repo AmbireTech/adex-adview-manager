@@ -38,3 +38,10 @@ The object format that those functions return is `{ unit, channelId, html }`
 ```
 webpack --mode production
 ```
+
+
+### iframe parameters
+
+```javascript
+`index.html#${encodeURIComponent(JSON.stringify({ options }))}`
+```
