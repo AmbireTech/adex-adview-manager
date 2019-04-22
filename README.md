@@ -21,8 +21,23 @@ run()
 
 `const mgr = new AdViewManager(fetch, opts)`
 
+#### Options
+
 For the available options, see https://github.com/AdExNetwork/adex-adview-manager/blob/master/src/main.ts#L18
 
+Brief description of each one:
+
+* `marketURL`: URL to the AdEx market; defaults to `"https://market.adex.network"`
+* `acceptedStates`: array of accepted campaign states; defaults to `['Active', 'Ready']`
+* `minPerImpression`: minimum payment amount per impression; defaults to `'0'`
+* `minTargetingScore`: minimum targeting score to show an ad unit; defaults to `0`
+* `publisherAddr`: the address of the publisher that will receive the earnings
+* `whitelistedToken`: the address of the whitelisted payment token
+* `whitelistedType`: the allowed type of the ad unit; don't pass that in (or set to `null`) if you want to allow all types
+* `topByPrice`: how many ad units to consider after sorting by price
+* `targeting`: what targeting tags to apply
+
+For detailed information on how the bidding process works, see: https://github.com/AdExNetwork/adex-protocol/blob/master/components/validator-stack.md#bidding-process
 
 ### Methods:
 
