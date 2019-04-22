@@ -39,6 +39,11 @@ The object format that those functions return is `{ unit, channelId, html }`
 webpack --mode production
 ```
 
+### Test it
+
+```
+http-server --cors dist.browser/
+```
 
 ### iframe parameters
 
