@@ -6,7 +6,8 @@
   "scripts": {
     "test": "node test/*",
     "prepublish": "tsc",
-    "build": "tsc"
+    "build": "tsc && time webpack --mode production",
+    "start": "tsc && time webpack --mode production && http-server --cors dist.browser"
   },
   "repository": {
     "type": "git",
