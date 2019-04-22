@@ -3,6 +3,7 @@ const { AdViewManager } = require('./lib/main')
 function initWithOptions(options) {
 	const mgr = new AdViewManager((url, o) => fetch(url, o), options)
 	mgr.getNextAdUnit().then(u => document.body.innerHTML = u.html)
+	document.body.style = 'margin: 0px;'
 }
 
 try {
