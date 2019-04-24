@@ -7,6 +7,7 @@ const defaultOpts = {
 	acceptedStates: ['Active', 'Ready'],
 	minPerImpression: '0',
 	minTargetingScore: 0,
+	randomize: false,
 }
 
 interface TargetTag {
@@ -21,6 +22,7 @@ interface AdViewManagerOptions {
 	acceptedStates: Array<string>,
 	minPerImpression: BigNumStr,
 	minTargetingScore: number,
+	randomize: boolean,
 	// Must be passed (eexcept the ones with ?)
 	publisherAddr: string,
 	whitelistedToken: string,
@@ -69,12 +71,16 @@ function applyTargeting(campaigns: Array<any>, options: AdViewManagerOptions): A
 		.map(x => ({
 			...x,
 			targetingScore: calculateTargetScore(x.unit.targeting, options.targeting || []),
+			rand: Math.random()
 		}))
 		.filter(x =>
 			x.targetingScore >= options.minTargetingScore
 			&& x.targetingScore >= x.minTargetingScore
 		)
-		.sort((a, b) => b.targetingScore - a.targetingScore)
+		.sort((a, b) =>
+			(b.targetingScore - a.targetingScore)
+				|| (options.randomize ? (b.rand - a.rand) : 0)
+		)
 
 	return unitsByScore
 }
