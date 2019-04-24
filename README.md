@@ -31,6 +31,7 @@ Brief description of each one:
 * `acceptedStates`: array of accepted campaign states; defaults to `['Active', 'Ready']`
 * `minPerImpression`: minimum payment amount per impression; defaults to `'0'`
 * `minTargetingScore`: minimum targeting score to show an ad unit; defaults to `0`
+* `randomize`: apply random sort as a secondary sort if the targeting score is the same
 * `publisherAddr`: the address of the publisher that will receive the earnings
 * `whitelistedToken`: the address of the whitelisted payment token
 * `whitelistedType`: the allowed type of the ad unit; don't pass that in (or set to `null`) if you want to allow all types
