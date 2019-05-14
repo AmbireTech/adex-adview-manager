@@ -13,7 +13,11 @@ function initWithOptions(options) {
 }
 
 try {
-	const params = JSON.parse(decodeURIComponent(location.hash.slice(1)))
+	const paramsStr = location.hash.slice(1)
+	if (!paramsStr) {
+		throw new Error('no params supplied; use /#/${JSON.stringify(params)}')
+	}
+	const params = JSON.parse(decodeURIComponent(paramsStr))
 	const { options } = params
 	initWithOptions(options)
 } catch(e) {
