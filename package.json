@@ -7,7 +7,9 @@
     "test": "node test/*",
     "prepublish": "tsc",
     "build": "tsc && time webpack --mode production",
-    "start": "tsc && time webpack --mode production && http-server --cors dist.browser"
+    "start": "tsc && time webpack --mode production && http-server --cors dist.browser",
+    "predeploy": "npm run build && cp CNAME ./dist.browser",
+    "deploy": "gh-pages -d dist.browser"
   },
   "repository": {
     "type": "git",
@@ -27,7 +29,8 @@
   },
   "homepage": "https://github.com/AdExNetwork/adex-adview-manager#readme",
   "dependencies": {
-    "bn.js": "^4.11.8"
+    "bn.js": "^4.11.8",
+    "gh-pages": "^2.0.1"
   },
   "devDependencies": {
     "html-webpack-plugin": "^4.0.0-beta.5",
