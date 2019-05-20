@@ -30,6 +30,8 @@ interface AdViewManagerOptions {
 	topByPrice?: number,
 	targeting?: Array<TargetTag>,
 	// @TODO debounce
+	width?: number,
+	height?: number
 }
 
 function calculateTargetScore(a: Array<TargetTag>, b: Array<TargetTag>): number {
