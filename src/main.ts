@@ -102,7 +102,7 @@ function getHTML({publisherAddr, width, height}: AdViewManagerOptions, { unit, c
 			return `fetch('${fetchUrl}', ${fetchOpts})`
 		})
 		.join(';')
-	const size = !width && !height ? `width="${width}" height="${height}" ` : ''
+	const size = width && height ? `width="${width}" height="${height}" ` : ''
 	return `<a href="${unit.targetUrl}" target="_blank" rel="noopener noreferrer">`
 		+`<img src="${imgUrl}" data-event-body='${evBody}' alt="AdEx ad" rel="nofollow" onload="${onLoadCode}" ${size}>`
 		+`</a>`

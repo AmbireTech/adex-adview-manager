@@ -6,7 +6,7 @@ function initWithOptions(options) {
 		if (u) {
 			document.body.innerHTML = u.html
 		} else if (options.fallbackMediaUrl) {
-			const size = !options.width && !options.height ? `width="${options.width}" height="${options.height}" ` : ''
+			const size = options.width && options.height ? `width="${options.width}" height="${options.height}" ` : ''
 			const img = `<img src='${options.fallbackMediaUrl}' ${size} alt="AdEx ad">`
 			document.body.innerHTML = `<a href="${options.fallbackTargetUrl}" target="_blank" rel="noopener noreferrer">${img}</a>`
 		}
