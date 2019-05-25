@@ -30,6 +30,8 @@ interface AdViewManagerOptions {
 	topByPrice?: number,
 	targeting?: Array<TargetTag>,
 	// @TODO debounce
+	width?: number,
+	height?: number
 }
 
 function calculateTargetScore(a: Array<TargetTag>, b: Array<TargetTag>): number {
@@ -90,9 +92,9 @@ function normalizeUrl(url: string): string {
 	return url
 }
 
-function getHTML(publisher, { unit, channelId, validators }): string {
+function getHTML({publisherAddr, width, height}: AdViewManagerOptions, { unit, channelId, validators }): string {
 	const imgUrl = normalizeUrl(unit.mediaUrl)
-	const evBody = JSON.stringify({ events: [{ type: 'IMPRESSION', publisher }] })
+	const evBody = JSON.stringify({ events: [{ type: 'IMPRESSION', publisherAddr }] })
 	const onLoadCode = validators
 		.map(({ url }) => {
 			const fetchOpts = `{ method: 'POST', headers: { 'content-type': 'application/json' }, body: this.dataset.eventBody }`
@@ -100,8 +102,9 @@ function getHTML(publisher, { unit, channelId, validators }): string {
 			return `fetch('${fetchUrl}', ${fetchOpts})`
 		})
 		.join(';')
-	return `<a href="${unit.targetUrl}" target="_blank">`
-		+`<img src="${imgUrl}" data-event-body='${evBody}' alt="AdEx ad" rel="nofollow" onload="${onLoadCode}">`
+	const size = width && height ? `width="${width}" height="${height}" ` : ''
+	return `<a href="${unit.targetUrl}" target="_blank" rel="noopener noreferrer">`
+		+`<img src="${imgUrl}" data-event-body='${evBody}' alt="AdEx ad" rel="nofollow" onload="${onLoadCode}" ${size}>`
 		+`</a>`
 }
 
@@ -142,6 +145,6 @@ export class AdViewManager {
 			.filter(({ channelId }) => this.getTimesShown(channelId) === min)
 		const next = leastShownUnits[0]
 		this.timesShown[next.channelId] = this.getTimesShown(next.channelId) + 1
-		return { ...next, html: getHTML(this.options.publisherAddr, next) }
+		return { ...next, html: getHTML(this.options, next) }
 	}
 }
