@@ -29,7 +29,6 @@ interface AdViewManagerOptions {
 	whitelistedType?: string,
 	topByPrice?: number,
 	targeting?: Array<TargetTag>,
-	// @TODO debounce
 	width?: number,
 	height?: number
 }
