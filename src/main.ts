@@ -5,7 +5,7 @@ const IPFS_GATEWAY = 'https://ipfs.adex.network/ipfs/'
 const defaultOpts = {
 	marketURL: 'https://market.adex.network',
 	acceptedStates: ['Active', 'Ready'],
-	minPerImpression: '0',
+	minPerImpression: '1',
 	minTargetingScore: 0,
 	randomize: false,
 }
