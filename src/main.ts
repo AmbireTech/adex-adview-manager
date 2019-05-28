@@ -87,7 +87,7 @@ function applyTargeting(campaigns: Array<any>, options: AdViewManagerOptions): A
 	return unitsByScore
 }
 
-function normalizeUrl(url: string): string {
+export function normalizeUrl(url: string): string {
 	if (url.startsWith('ipfs://')) return `${IPFS_GATEWAY}${url.slice(7)}`
 	return url
 }
