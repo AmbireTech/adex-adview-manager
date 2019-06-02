@@ -23,7 +23,7 @@ interface AdViewManagerOptions {
 	minPerImpression: BigNumStr,
 	minTargetingScore: number,
 	randomize: boolean,
-	// Must be passed (eexcept the ones with ?)
+	// Must be passed (except the ones with ?)
 	publisherAddr: string,
 	whitelistedToken: string,
 	whitelistedType?: string,
@@ -93,7 +93,7 @@ export function normalizeUrl(url: string): string {
 
 function getHTML({publisherAddr, width, height}: AdViewManagerOptions, { unit, channelId, validators }): string {
 	const imgUrl = normalizeUrl(unit.mediaUrl)
-	const evBody = JSON.stringify({ events: [{ type: 'IMPRESSION', publisherAddr }] })
+	const evBody = JSON.stringify({ events: [{ type: 'IMPRESSION', publisher: publisherAddr }] })
 	const onLoadCode = validators
 		.map(({ url }) => {
 			const fetchOpts = `{ method: 'POST', headers: { 'content-type': 'application/json' }, body: this.dataset.eventBody }`
