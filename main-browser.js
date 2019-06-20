@@ -1,6 +1,9 @@
 const { AdViewManager, normalizeUrl } = require('./lib/main')
 
 function initWithOptions(options) {
+	// emergency fix
+	if (options.publisher) options.publisherAddr = options.publisher;
+	// end of emergency fix
 	const mgr = new AdViewManager((url, o) => fetch(url, o), options)
 	mgr.getNextAdUnit().then(u => {
 		if (u) {
