@@ -71,3 +71,25 @@ const options = {
 }
 const url = `index.html#${encodeURIComponent(JSON.stringify({ options }))}`
 ```
+
+
+### iframes
+
+#### Standard:
+
+```
+<iframe width={width} height={height} src="{origin}{parameters}">
+```
+
+#### Auto collapsing, collapsed by default:
+
+```
+`<iframe width={width} src="{origin}{parameters}">
+```
+
+
+#### Auto collapsing, not collapsed by default:
+
+```
+<iframe width={width} height={height} src="{origin}{parameters}">
+```

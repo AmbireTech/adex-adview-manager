@@ -6,7 +6,6 @@ function initWithOptions(options) {
 	// end of emergency fix
 	const mgr = new AdViewManager((url, o) => fetch(url, o), options)
 	mgr.getNextAdUnit().then(u => {
-		let height
 		if (u) {
 			document.body.innerHTML = u.html
 		} else if (options.fallbackMediaUrl) {
@@ -16,7 +15,7 @@ function initWithOptions(options) {
 		}
 		if (window.parent) {
 			const height = u || options.fallbackMediaUrl ? options.height : 0
-			const m = { adexHeight: height }
+			const m = { adexHeight: height, id: options.id }
 			window.parent.postMessage(m, "*")
 		}
 	})
