@@ -6,18 +6,18 @@ function initWithOptions(options) {
 	// end of emergency fix
 	const mgr = new AdViewManager((url, o) => fetch(url, o), options)
 	mgr.getNextAdUnit().then(u => {
+		let height
 		if (u) {
 			document.body.innerHTML = u.html
 		} else if (options.fallbackMediaUrl) {
 			const size = options.width && options.height ? `width="${options.width}" height="${options.height}" ` : ''
 			const img = `<img src='${normalizeUrl(options.fallbackMediaUrl)}' ${size} alt="AdEx ad">`
 			document.body.innerHTML = `<a href="${options.fallbackTargetUrl}" target="_blank" rel="noopener noreferrer">${img}</a>`
-		} else {
-			if (window.parent && window.parent.parent) {
-				//height: document.body.getBoundingClientRect().height,
-				const m = { collapse: true }
-				window.parent.parent.postMessage(["adexFrame", m], "*")
-			}	
+		}
+		if (window.parent) {
+			const height = u || options.fallbackMediaUrl ? options.height : 0
+			const m = { adexHeight: height }
+			window.parent.postMessage(m, "*")
 		}
 	})
 	document.body.style = 'margin: 0px;'
