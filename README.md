@@ -86,7 +86,7 @@ const url = `index.html#${encodeURIComponent(JSON.stringify({ options }))}`
 Do not forget to set an `id` in the parameters!
 
 ```
-`<iframe width={width} src="{origin}{parameters}" onload="window.addEventListener('message', function(m) { if (m.data.hasOwnProperty('adexHeight') && m.data.id === '{id}' && m.origin === 'https://viewm.adex.network') {id}.height = m.data.adexHeight }, false)">
+`<iframe width={width} src="{origin}{parameters}" onload="window.addEventListener('message', function(m) { if (m.data.hasOwnProperty('adexHeight') && m.data.id === '{id}' && m.origin === 'https://viewm.adex.network') {id}.height = m.data.adexHeight }, false)" id="{id}">
 ```
 
 
@@ -95,5 +95,5 @@ Do not forget to set an `id` in the parameters!
 Do not forget to set an `id` in the parameters!
 
 ```
-<iframe width={width} height={height} src="{origin}{parameters}" onload="window.addEventListener('message', function(m) { if (m.data.hasOwnProperty('adexHeight') && m.data.id === '{id}' && m.origin === 'https://viewm.adex.network') {id}.height = m.data.adexHeight }, false)">
+<iframe width={width} height={height} src="{origin}{parameters}" onload="window.addEventListener('message', function(m) { if (m.data.hasOwnProperty('adexHeight') && m.data.id === '{id}' && m.origin === 'https://viewm.adex.network') {id}.height = m.data.adexHeight }, false)" id="(id)">
 ```
