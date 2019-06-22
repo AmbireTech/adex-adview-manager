@@ -13,6 +13,11 @@ function initWithOptions(options) {
 			const img = `<img src='${normalizeUrl(options.fallbackMediaUrl)}' ${size} alt="AdEx ad">`
 			document.body.innerHTML = `<a href="${options.fallbackTargetUrl}" target="_blank" rel="noopener noreferrer">${img}</a>`
 		}
+		if (window.parent) {
+			const height = u || options.fallbackMediaUrl ? options.height : 0
+			const m = { adexHeight: height }
+			window.parent.postMessage(m, "*")
+		}
 	})
 	document.body.style = 'margin: 0px;'
 }
