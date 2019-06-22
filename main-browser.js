@@ -15,7 +15,7 @@ function initWithOptions(options) {
 		}
 		if (window.parent) {
 			const height = u || options.fallbackMediaUrl ? options.height : 0
-			const m = { adexHeight: height, id: options.id }
+			const m = { adexHeight: height }
 			window.parent.postMessage(m, "*")
 		}
 	})

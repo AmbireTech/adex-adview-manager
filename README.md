@@ -81,19 +81,20 @@ const url = `index.html#${encodeURIComponent(JSON.stringify({ options }))}`
 <iframe width={width} height={height} src="{origin}{parameters}">
 ```
 
-#### Auto collapsing, collapsed by default:
+#### Auto-collapsing, collapsed by default:
 
-Do not forget to set an `id` in the parameters!
-
-```
-`<iframe width={width} src="{origin}{parameters}" onload="window.addEventListener('message', function(m) { if (m.data.hasOwnProperty('adexHeight') && m.data.id === '{id}' && m.origin === 'https://viewm.adex.network') {id}.height = m.data.adexHeight }, false)" id="{id}">
-```
-
-
-#### Auto collapsing, not collapsed by default:
-
-Do not forget to set an `id` in the parameters!
+Auto-collapsing is achieved by adding an `onload` handler: `window.addEventListener('message', function(ev) { if (ev.data.hasOwnProperty('adexHeight') && ev.origin === '{origin}') for (f of document.getElementsByTagName('iframe')) if (f.contentWindow === ev.source) f.height = ev.data.adexHeight }, false)`
 
 ```
-<iframe width={width} height={height} src="{origin}{parameters}" onload="window.addEventListener('message', function(m) { if (m.data.hasOwnProperty('adexHeight') && m.data.id === '{id}' && m.origin === 'https://viewm.adex.network') {id}.height = m.data.adexHeight }, false)" id="(id)">
+`<iframe width={width} src="{origin}{parameters}" onload="window.addEventListener('message', function(ev) { if (ev.data.hasOwnProperty('adexHeight') && ev.origin === '{origin}') for (f of document.getElementsByTagName('iframe')) if (f.contentWindow === ev.source) f.height = ev.data.adexHeight }, false)">
+```
+
+
+#### Auto-collapsing, not collapsed by default:
+
+
+Essentially the only difference to the previous one is that the `height` is set
+
+```
+<iframe width={width} height={height} src="{origin}{parameters}" onload="window.addEventListener('message', function(ev) { if (ev.data.hasOwnProperty('adexHeight') && ev.origin === '{origin}') for (f of document.getElementsByTagName('iframe')) if (f.contentWindow === ev.source) f.height = ev.data.adexHeight }, false)">
 ```
