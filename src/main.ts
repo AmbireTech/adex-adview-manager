@@ -92,21 +92,25 @@ export function normalizeUrl(url: string): string {
 	return url
 }
 
-function getHTML({ publisherAddr, width, height }: AdViewManagerOptions, { unit, channelId, validators }): string {
+function getUnitHTML({ width, height }: AdViewManagerOptions, { unit, evBody = '', onLoadCode = '' }): string {
 	const imgUrl = normalizeUrl(unit.mediaUrl)
-	const evBody = JSON.stringify({ events: [{ type: 'IMPRESSION', publisher: publisherAddr }] })
-	const onLoadCode = !unit.isFallback ? validators
+	const size = width && height ? `width="${width}" height="${height}" ` : ''
+	return `<a href="${unit.targetUrl}" target="_blank" rel="noopener noreferrer">`
+		+ `<img src="${imgUrl}" data-event-body='${evBody}' alt="AdEx ad" rel="nofollow" onload="${onLoadCode}" ${size}>`
+		+ `</a>`
+}
+
+function getHTML(options: AdViewManagerOptions, { unit, channelId, validators }): string {
+	const evBody = JSON.stringify({ events: [{ type: 'IMPRESSION', publisher: options.publisherAddr }] })
+	const onLoadCode = validators
 		.map(({ url }) => {
 			const fetchOpts = `{ method: 'POST', headers: { 'content-type': 'application/json' }, body: this.dataset.eventBody }`
 			const fetchUrl = `${url}/channel/${channelId}/events`
 			return `fetch('${fetchUrl}', ${fetchOpts})`
 		})
 		.join(';')
-		: `() => {}`
-	const size = width && height ? `width="${width}" height="${height}" ` : ''
-	return `<a href="${unit.targetUrl}" target="_blank" rel="noopener noreferrer">`
-		+ `<img src="${imgUrl}" data-event-body='${evBody}' alt="AdEx ad" rel="nofollow" onload="${onLoadCode}" ${size}>`
-		+ `</a>`
+
+	return getUnitHTML(options, { unit, evBody, onLoadCode })
 }
 
 export class AdViewManager {
@@ -141,17 +145,16 @@ export class AdViewManager {
 		if (!fallbackUnit) return null
 		const url = `${this.options.marketURL}/units/${this.options.fallbackUnit}`
 		const unit = await this.fetch(url).then(r => r.json())
-		unit.isFallback = true
 		return unit
 	}
 	async getNextAdUnit(): Promise<any> {
 		const units = await this.getAdUnits()
 		if (units.length === 0) {
 			const fallbackUnit = await this.getFallbackUnit()
-			if (!fallbackUnit) {
-				return null
+			if (fallbackUnit) {
+				return { ...fallbackUnit, html: getUnitHTML(this.options, { unit: fallbackUnit }) }
 			} else {
-				units.push(fallbackUnit)
+				null
 			}
 		}
 
