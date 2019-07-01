@@ -154,7 +154,7 @@ export class AdViewManager {
 			if (fallbackUnit) {
 				return { ...fallbackUnit, html: getUnitHTML(this.options, { unit: fallbackUnit }) }
 			} else {
-				null
+				return null
 			}
 		}
 
