@@ -26,7 +26,7 @@ try {
 	const params = JSON.parse(decodeURIComponent(paramsStr))
 	const { options } = params
 	initWithOptions(options)
-} catch(e) {
+} catch (e) {
 	// @TODO link to the documentation here
 	console.error('Failed parsing input parameters', e)
 }

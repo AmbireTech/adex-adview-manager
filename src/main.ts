@@ -30,8 +30,8 @@ interface AdViewManagerOptions {
 	topByPrice?: number,
 	targeting?: Array<TargetTag>,
 	width?: number,
-    height?: number,
-    fallbackUnit?: string
+	height?: number,
+	fallbackUnit?: string
 }
 
 function calculateTargetScore(a: Array<TargetTag>, b: Array<TargetTag>): number {
@@ -81,7 +81,7 @@ function applyTargeting(campaigns: Array<any>, options: AdViewManagerOptions): A
 		)
 		.sort((a, b) =>
 			(b.targetingScore - a.targetingScore)
-				|| (options.randomize ? (b.rand - a.rand) : 0)
+			|| (options.randomize ? (b.rand - a.rand) : 0)
 		)
 
 	return unitsByScore
@@ -92,7 +92,7 @@ export function normalizeUrl(url: string): string {
 	return url
 }
 
-function getHTML({publisherAddr, width, height}: AdViewManagerOptions, { unit, channelId, validators }): string {
+function getHTML({ publisherAddr, width, height }: AdViewManagerOptions, { unit, channelId, validators }): string {
 	const imgUrl = normalizeUrl(unit.mediaUrl)
 	const evBody = JSON.stringify({ events: [{ type: 'IMPRESSION', publisher: publisherAddr }] })
 	const onLoadCode = !unit.isFallback ? validators
@@ -101,12 +101,12 @@ function getHTML({publisherAddr, width, height}: AdViewManagerOptions, { unit, c
 			const fetchUrl = `${url}/channel/${channelId}/events`
 			return `fetch('${fetchUrl}', ${fetchOpts})`
 		})
-        .join(';')
-        : `() => {}`
+		.join(';')
+		: `() => {}`
 	const size = width && height ? `width="${width}" height="${height}" ` : ''
 	return `<a href="${unit.targetUrl}" target="_blank" rel="noopener noreferrer">`
-		+`<img src="${imgUrl}" data-event-body='${evBody}' alt="AdEx ad" rel="nofollow" onload="${onLoadCode}" ${size}>`
-		+`</a>`
+		+ `<img src="${imgUrl}" data-event-body='${evBody}' alt="AdEx ad" rel="nofollow" onload="${onLoadCode}" ${size}>`
+		+ `</a>`
 }
 
 export class AdViewManager {
@@ -135,25 +135,25 @@ export class AdViewManager {
 					.gte(new BN(this.options.minPerImpression))
 		})
 		return applyTargeting(eligible, this.options)
-    }
-    async getFallbackUnit(): Promise<any> {
-        const { fallbackUnit } = this.options
-        if ( !fallbackUnit ) return null
-        const url = `${this.options.marketURL}/units/${this.options.fallbackUnit}`
-        const unit = await this.fetch(url).then(r => r.json())
-        unit.isFallback = true
-        return unit
-    }
+	}
+	async getFallbackUnit(): Promise<any> {
+		const { fallbackUnit } = this.options
+		if (!fallbackUnit) return null
+		const url = `${this.options.marketURL}/units/${this.options.fallbackUnit}`
+		const unit = await this.fetch(url).then(r => r.json())
+		unit.isFallback = true
+		return unit
+	}
 	async getNextAdUnit(): Promise<any> {
 		const units = await this.getAdUnits()
-        if (units.length === 0) {
-            const fallbackUnit = await this.getFallbackUnit()
-            if(!fallbackUnit) {
-                return null
-            } else {
-                units.push(fallbackUnit)
-            }
-        }
+		if (units.length === 0) {
+			const fallbackUnit = await this.getFallbackUnit()
+			if (!fallbackUnit) {
+				return null
+			} else {
+				units.push(fallbackUnit)
+			}
+		}
 
 		const min = units
 			.map(({ channelId }) => this.getTimesShown(channelId))
