@@ -5,7 +5,7 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 module.exports = {
   entry: './main-browser.js',
   output: {
-    filename: 'main.js',
+    filename: `main.js?t=${Date.now()}`,
     path: path.resolve(__dirname, 'dist.browser'),
     crossOriginLoading: 'anonymous',
   },

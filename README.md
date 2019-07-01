@@ -83,7 +83,11 @@ const url = `index.html#${encodeURIComponent(JSON.stringify({ options }))}`
 
 #### Auto-collapsing, collapsed by default:
 
-Auto-collapsing is achieved by adding an `onload` handler: `window.addEventListener('message', function(ev) { if (ev.data.hasOwnProperty('adexHeight') && ev.origin === '{origin}') for (f of document.getElementsByTagName('iframe')) if (f.contentWindow === ev.source) f.height = ev.data.adexHeight }, false)`
+Auto-collapsing is achieved by adding an `onload` handler:
+
+```javascript
+window.addEventListener('message', function(ev) { if (ev.data.hasOwnProperty('adexHeight') && ev.origin === '{origin}') for (f of document.getElementsByTagName('iframe')) if (f.contentWindow === ev.source) f.height = ev.data.adexHeight }, false)
+```
 
 ```
 `<iframe width={width} src="{origin}{parameters}" onload="window.addEventListener('message', function(ev) { if (ev.data.hasOwnProperty('adexHeight') && ev.origin === '{origin}') for (f of document.getElementsByTagName('iframe')) if (f.contentWindow === ev.source) f.height = ev.data.adexHeight }, false)">
