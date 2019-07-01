@@ -30,7 +30,8 @@ interface AdViewManagerOptions {
 	topByPrice?: number,
 	targeting?: Array<TargetTag>,
 	width?: number,
-	height?: number
+    height?: number,
+    fallbackUnit?: string
 }
 
 function calculateTargetScore(a: Array<TargetTag>, b: Array<TargetTag>): number {
@@ -94,13 +95,14 @@ export function normalizeUrl(url: string): string {
 function getHTML({publisherAddr, width, height}: AdViewManagerOptions, { unit, channelId, validators }): string {
 	const imgUrl = normalizeUrl(unit.mediaUrl)
 	const evBody = JSON.stringify({ events: [{ type: 'IMPRESSION', publisher: publisherAddr }] })
-	const onLoadCode = validators
+	const onLoadCode = !unit.isFallback ? validators
 		.map(({ url }) => {
 			const fetchOpts = `{ method: 'POST', headers: { 'content-type': 'application/json' }, body: this.dataset.eventBody }`
 			const fetchUrl = `${url}/channel/${channelId}/events`
 			return `fetch('${fetchUrl}', ${fetchOpts})`
 		})
-		.join(';')
+        .join(';')
+        : `() => {}`
 	const size = width && height ? `width="${width}" height="${height}" ` : ''
 	return `<a href="${unit.targetUrl}" target="_blank" rel="noopener noreferrer">`
 		+`<img src="${imgUrl}" data-event-body='${evBody}' alt="AdEx ad" rel="nofollow" onload="${onLoadCode}" ${size}>`
@@ -133,10 +135,26 @@ export class AdViewManager {
 					.gte(new BN(this.options.minPerImpression))
 		})
 		return applyTargeting(eligible, this.options)
-	}
+    }
+    async getFallbackUnit(): Promise<any> {
+        const { fallbackUnit } = this.options
+        if ( !fallbackUnit ) return null
+        const url = `${this.options.marketURL}/units${this.options.fallbackUnit}`
+        const unit = await this.fetch(url).then(r => r.json())
+        unit.isFallback = true
+        return unit
+    }
 	async getNextAdUnit(): Promise<any> {
 		const units = await this.getAdUnits()
-		if (units.length === 0) return null
+        if (units.length === 0) {
+            const fallbackUnit = await this.getFallbackUnit()
+            if(!fallbackUnit) {
+                return null
+            } else {
+                units.push(fallbackUnit)
+            }
+        }
+
 		const min = units
 			.map(({ channelId }) => this.getTimesShown(channelId))
 			.reduce((a, b) => Math.min(a, b))
