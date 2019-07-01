@@ -139,7 +139,7 @@ export class AdViewManager {
     async getFallbackUnit(): Promise<any> {
         const { fallbackUnit } = this.options
         if ( !fallbackUnit ) return null
-        const url = `${this.options.marketURL}/units${this.options.fallbackUnit}`
+        const url = `${this.options.marketURL}/units/${this.options.fallbackUnit}`
         const unit = await this.fetch(url).then(r => r.json())
         unit.isFallback = true
         return unit
