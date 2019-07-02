@@ -92,11 +92,24 @@ export function normalizeUrl(url: string): string {
 	return url
 }
 
+function imageHtml({ evBody, onLoadCode, size, imgUrl }): string {
+	return `<img src="${imgUrl}" data-event-body='${evBody}' alt="AdEx ad" rel="nofollow" onload="${onLoadCode}" ${size}>`
+}
+
+function videoHtml({ evBody, onLoadCode, size, imgUrl, mediaMime }): string {
+	return `<video ${size} loop autoplay data-event-body='${evBody}' loadeddata="${onLoadCode}" >` +
+		`<source src="${imgUrl}" type="${mediaMime}">` +
+		`</video>`
+}
+
 function getUnitHTML({ width, height }: AdViewManagerOptions, { unit, evBody = '', onLoadCode = '' }): string {
 	const imgUrl = normalizeUrl(unit.mediaUrl)
+	const isVideo = (unit.mediaMime || '').split('/')[0] === 'video'
 	const size = width && height ? `width="${width}" height="${height}" ` : ''
 	return `<a href="${unit.targetUrl}" target="_blank" rel="noopener noreferrer">`
-		+ `<img src="${imgUrl}" data-event-body='${evBody}' alt="AdEx ad" rel="nofollow" onload="${onLoadCode}" ${size}>`
+		+ isVideo
+		? videoHtml({ evBody, onLoadCode, size, imgUrl, mediaMime: unit.mediaMime })
+		: imageHtml({ evBody, onLoadCode, size, imgUrl })
 		+ `</a>`
 }
 
