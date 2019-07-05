@@ -97,7 +97,7 @@ function imageHtml({ evBody, onLoadCode, size, imgUrl }): string {
 }
 
 function videoHtml({ evBody, onLoadCode, size, imgUrl, mediaMime }): string {
-	return `<video ${size} loop autoplay data-event-body='${evBody}' loadeddata="${onLoadCode}" muted>` +
+	return `<video ${size} loop autoplay data-event-body='${evBody}' onloadeddata="${onLoadCode}" muted>` +
 		`<source src="${imgUrl}" type="${mediaMime}">` +
 		`</video>`
 }
