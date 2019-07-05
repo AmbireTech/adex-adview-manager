@@ -107,9 +107,9 @@ function getUnitHTML({ width, height }: AdViewManagerOptions, { unit, evBody = '
 	const isVideo = (unit.mediaMime || '').split('/')[0] === 'video'
 	const size = width && height ? `width="${width}" height="${height}" ` : ''
 	return `<a href="${unit.targetUrl}" target="_blank" rel="noopener noreferrer">`
-		+ isVideo
-		? videoHtml({ evBody, onLoadCode, size, imgUrl, mediaMime: unit.mediaMime })
-		: imageHtml({ evBody, onLoadCode, size, imgUrl })
+		+ (isVideo
+			? videoHtml({ evBody, onLoadCode, size, imgUrl, mediaMime: unit.mediaMime })
+			: imageHtml({ evBody, onLoadCode, size, imgUrl }))
 		+ `</a>`
 }
 
