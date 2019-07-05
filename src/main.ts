@@ -114,7 +114,7 @@ function getUnitHTML({ width, height }: AdViewManagerOptions, { unit, evBody = '
 }
 
 function getHTML(options: AdViewManagerOptions, { unit, channelId, validators }): string {
-	const evBody = JSON.stringify({ events: [{ type: 'IMPRESSION', publisher: options.publisherAddr }] })
+	const evBody = JSON.stringify({ events: [{ type: 'IMPRESSION', publisher: options.publisherAddr, adUnit: unit.ipfs }] })
 	const onLoadCode = validators
 		.map(({ url }) => {
 			const fetchOpts = `{ method: 'POST', headers: { 'content-type': 'application/json' }, body: this.dataset.eventBody }`
