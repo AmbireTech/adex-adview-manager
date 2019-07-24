@@ -47,9 +47,18 @@ function calculateTargetScore(a: Array<TargetTag>, b: Array<TargetTag>): number 
 	}).reduce((a, b) => a + b, 0)
 }
 
-function applyTargeting(campaigns: Array<any>, options: AdViewManagerOptions): Array<any> {
+function applySelection(campaigns: Array<any>, options: AdViewManagerOptions): Array<any> {
+	const eligible = campaigns.filter(campaign => {
+		return this.options.acceptedStates.includes(campaign.status.name)
+			&& (campaign.spec.activeFrom || 0) < Date.now()
+			&& Array.isArray(campaign.spec.adUnits)
+			&& campaign.depositAsset === this.options.whitelistedToken
+			&& new BN(campaign.spec.minPerImpression)
+				.gte(new BN(this.options.minPerImpression))
+	})
+
 	// Map them to units, flatten
-	const units = campaigns
+	const units = eligible
 		.map(campaign =>
 			campaign.spec.adUnits.map(unit => ({
 				unit,
@@ -144,17 +153,7 @@ export class AdViewManager {
 	async getAdUnits(): Promise<any> {
 		const url = `${this.options.marketURL}/campaigns?status=${this.options.acceptedStates.join(',')}`
 		const campaigns = await this.fetch(url).then(r => r.json())
-
-		// Eligible campaigns
-		const eligible = campaigns.filter(campaign => {
-			return this.options.acceptedStates.includes(campaign.status.name)
-				&& (campaign.spec.activeFrom || 0) < Date.now()
-				&& Array.isArray(campaign.spec.adUnits)
-				&& campaign.depositAsset === this.options.whitelistedToken
-				&& new BN(campaign.spec.minPerImpression)
-					.gte(new BN(this.options.minPerImpression))
-		})
-		return applyTargeting(eligible, this.options)
+		return applySelection(campaigns, this.options)
 	}
 	async getFallbackUnit(): Promise<any> {
 		const { fallbackUnit } = this.options
