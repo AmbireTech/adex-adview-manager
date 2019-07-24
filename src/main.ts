@@ -9,7 +9,7 @@ const defaultOpts = {
 	minTargetingScore: 0,
 	topByPrice: 10,
 	topByScore: 5,
-	randomize: false,
+	randomize: true,
 }
 
 interface TargetTag {
