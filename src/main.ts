@@ -49,12 +49,12 @@ function calculateTargetScore(a: Array<TargetTag>, b: Array<TargetTag>): number 
 
 function applySelection(campaigns: Array<any>, options: AdViewManagerOptions): Array<any> {
 	const eligible = campaigns.filter(campaign => {
-		return this.options.acceptedStates.includes(campaign.status.name)
+		return options.acceptedStates.includes(campaign.status.name)
 			&& (campaign.spec.activeFrom || 0) < Date.now()
 			&& Array.isArray(campaign.spec.adUnits)
-			&& campaign.depositAsset === this.options.whitelistedToken
+			&& campaign.depositAsset === options.whitelistedToken
 			&& new BN(campaign.spec.minPerImpression)
-				.gte(new BN(this.options.minPerImpression))
+				.gte(new BN(options.minPerImpression))
 	})
 
 	// Map them to units, flatten
