@@ -172,7 +172,9 @@ export class AdViewManager {
 			.reduce((a, b) => Math.min(a, b))
 		const leastShownUnits = units
 			.filter(({ channelId }) => this.getTimesShown(channelId) === min)
-		const next = leastShownUnits[0]
+		const next = this.options.randomize ?
+			leastShownUnits[Math.floor(Math.random() * leastShownUnits.length)]
+			: leastShownUnits[0]
 		this.timesShown[next.channelId] = this.getTimesShown(next.channelId) + 1
 		return { ...next, html: getHTML(this.options, next) }
 	}
