@@ -7,6 +7,8 @@ const defaultOpts = {
 	acceptedStates: ['Active', 'Ready'],
 	minPerImpression: '1',
 	minTargetingScore: 0,
+	topByPrice: 10,
+	topByScore: 5,
 	randomize: false,
 }
 
@@ -28,6 +30,7 @@ interface AdViewManagerOptions {
 	whitelistedToken: string,
 	whitelistedType?: string,
 	topByPrice?: number,
+	topByScore?: number,
 	targeting?: Array<TargetTag>,
 	width?: number,
 	height?: number,
@@ -79,6 +82,10 @@ function applyTargeting(campaigns: Array<any>, options: AdViewManagerOptions): A
 			&& x.targetingScore >= x.minTargetingScore
 		)
 		.sort((a, b) => b.targetingScore - a.targetingScore)
+
+	const unitsTopByScore = options.topByScore
+		? unitsByScore.slice(0, options.topByScore)
+		: unitsByScore
 
 	return unitsByScore
 }
