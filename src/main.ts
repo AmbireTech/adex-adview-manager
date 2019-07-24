@@ -73,16 +73,12 @@ function applyTargeting(campaigns: Array<any>, options: AdViewManagerOptions): A
 		.map(x => ({
 			...x,
 			targetingScore: calculateTargetScore(x.unit.targeting, options.targeting || []),
-			rand: Math.random()
 		}))
 		.filter(x =>
 			x.targetingScore >= options.minTargetingScore
 			&& x.targetingScore >= x.minTargetingScore
 		)
-		.sort((a, b) =>
-			(b.targetingScore - a.targetingScore)
-			|| (options.randomize ? (b.rand - a.rand) : 0)
-		)
+		.sort((a, b) => b.targetingScore - a.targetingScore)
 
 	return unitsByScore
 }
