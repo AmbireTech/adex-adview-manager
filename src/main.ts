@@ -10,7 +10,6 @@ const defaultOpts = {
 	topByPrice: 10,
 	topByScore: 5,
 	randomize: true,
-	maxChannelsEarningFrom: 20
 }
 
 interface TargetTag {
@@ -36,7 +35,6 @@ interface AdViewManagerOptions {
 	width?: number,
 	height?: number,
 	fallbackUnit?: string,
-	maxChannelsEarningFrom?: number
 }
 
 function calculateTargetScore(a: Array<TargetTag>, b: Array<TargetTag>): number {
@@ -59,12 +57,8 @@ function applySelection(campaigns: Array<any>, options: AdViewManagerOptions): A
 				.gte(new BN(options.minPerImpression))
 	})
 
-	const limitEligible = options.maxChannelsEarningFrom ?
-		eligible.slice(0, options.maxChannelsEarningFrom) :
-		eligible
-
 	// Map them to units, flatten
-	const units = limitEligible
+	const units = eligible
 		.map(campaign =>
 			campaign.spec.adUnits.map(unit => ({
 				unit,
@@ -157,7 +151,7 @@ export class AdViewManager {
 		this.timesShown = {}
 	}
 	async getAdUnits(): Promise<any> {
-		const url = `${this.options.marketURL}/campaigns?status=${this.options.acceptedStates.join(',')}`
+		const url = `${this.options.marketURL}/campaigns?byEarner=${this.options.publisherAddr}&limitForPublisher=${this.options.publisherAddr}&status=${this.options.acceptedStates.join(',')}`
 		const campaigns = await this.fetch(url).then(r => r.json())
 		return applySelection(campaigns, this.options)
 	}
