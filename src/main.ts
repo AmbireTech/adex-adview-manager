@@ -10,6 +10,7 @@ const defaultOpts = {
 	topByPrice: 10,
 	topByScore: 5,
 	randomize: true,
+	maxChannelsEarningFrom: 20
 }
 
 interface TargetTag {
@@ -34,7 +35,8 @@ interface AdViewManagerOptions {
 	targeting?: Array<TargetTag>,
 	width?: number,
 	height?: number,
-	fallbackUnit?: string
+	fallbackUnit?: string,
+	maxChannelsEarningFrom?: number
 }
 
 function calculateTargetScore(a: Array<TargetTag>, b: Array<TargetTag>): number {
@@ -57,8 +59,12 @@ function applySelection(campaigns: Array<any>, options: AdViewManagerOptions): A
 				.gte(new BN(options.minPerImpression))
 	})
 
+	const limitEligible = options.maxChannelsEarningFrom ?
+		eligible.slice(0, options.maxChannelsEarningFrom) :
+		eligible
+
 	// Map them to units, flatten
-	const units = eligible
+	const units = limitEligible
 		.map(campaign =>
 			campaign.spec.adUnits.map(unit => ({
 				unit,
