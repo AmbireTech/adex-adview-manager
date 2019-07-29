@@ -159,8 +159,8 @@ export class AdViewManager {
 		const { fallbackUnit } = this.options
 		if (!fallbackUnit) return null
 		const url = `${this.options.marketURL}/units/${this.options.fallbackUnit}`
-		const unit = await this.fetch(url).then(r => r.json())
-		return unit
+		const result = await this.fetch(url).then(r => r.json())
+		return result.unit
 	}
 	async getNextAdUnit(): Promise<any> {
 		const units = await this.getAdUnits()
