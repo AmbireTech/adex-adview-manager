@@ -34,7 +34,7 @@ interface AdViewManagerOptions {
 	targeting?: Array<TargetTag>,
 	width?: number,
 	height?: number,
-	fallbackUnit?: string,
+	fallbackUnit?: string
 }
 
 function calculateTargetScore(a: Array<TargetTag>, b: Array<TargetTag>): number {
