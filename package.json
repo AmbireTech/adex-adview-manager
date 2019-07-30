@@ -8,8 +8,8 @@
     "prepublish": "tsc",
     "build": "tsc && time webpack --mode production",
     "start": "tsc && time webpack --mode production && http-server --cors dist.browser",
-    "predeploy": "npm run build && cp CNAME ./dist.browser",
-    "deploy": "gh-pages -d dist.browser -r git@github.com:AdExNetwork/adex-adview-manager-host.git"
+    "deploy-adex": "npm run build && cp ./domains/adex/CNAME ./dist.browser && gh-pages -d dist.browser",
+    "deploy": "npm run build && cp ./domains/moonicorn/CNAME ./dist.browser && gh-pages -d dist.browser -r git@github.com:AdExNetwork/adex-adview-manager-host.git"
   },
   "repository": {
     "type": "git",
