@@ -7,7 +7,9 @@ const defaultOpts = {
 	acceptedStates: ['Active', 'Ready'],
 	minPerImpression: '1',
 	minTargetingScore: 0,
-	randomize: false,
+	topByPrice: 10,
+	topByScore: 5,
+	randomize: true,
 }
 
 interface TargetTag {
@@ -28,6 +30,7 @@ interface AdViewManagerOptions {
 	whitelistedToken: string,
 	whitelistedType?: string,
 	topByPrice?: number,
+	topByScore?: number,
 	targeting?: Array<TargetTag>,
 	width?: number,
 	height?: number,
@@ -44,9 +47,18 @@ function calculateTargetScore(a: Array<TargetTag>, b: Array<TargetTag>): number 
 	}).reduce((a, b) => a + b, 0)
 }
 
-function applyTargeting(campaigns: Array<any>, options: AdViewManagerOptions): Array<any> {
+function applySelection(campaigns: Array<any>, options: AdViewManagerOptions): Array<any> {
+	const eligible = campaigns.filter(campaign => {
+		return options.acceptedStates.includes(campaign.status.name)
+			&& (campaign.spec.activeFrom || 0) < Date.now()
+			&& Array.isArray(campaign.spec.adUnits)
+			&& campaign.depositAsset === options.whitelistedToken
+			&& new BN(campaign.spec.minPerImpression)
+				.gte(new BN(options.minPerImpression))
+	})
+
 	// Map them to units, flatten
-	const units = campaigns
+	const units = eligible
 		.map(campaign =>
 			campaign.spec.adUnits.map(unit => ({
 				unit,
@@ -73,16 +85,16 @@ function applyTargeting(campaigns: Array<any>, options: AdViewManagerOptions): A
 		.map(x => ({
 			...x,
 			targetingScore: calculateTargetScore(x.unit.targeting, options.targeting || []),
-			rand: Math.random()
 		}))
 		.filter(x =>
 			x.targetingScore >= options.minTargetingScore
 			&& x.targetingScore >= x.minTargetingScore
 		)
-		.sort((a, b) =>
-			(b.targetingScore - a.targetingScore)
-			|| (options.randomize ? (b.rand - a.rand) : 0)
-		)
+		.sort((a, b) => b.targetingScore - a.targetingScore)
+
+	const unitsTopByScore = options.topByScore
+		? unitsByScore.slice(0, options.topByScore)
+		: unitsByScore
 
 	return unitsByScore
 }
@@ -141,24 +153,14 @@ export class AdViewManager {
 	async getAdUnits(): Promise<any> {
 		const url = `${this.options.marketURL}/campaigns?status=${this.options.acceptedStates.join(',')}`
 		const campaigns = await this.fetch(url).then(r => r.json())
-
-		// Eligible campaigns
-		const eligible = campaigns.filter(campaign => {
-			return this.options.acceptedStates.includes(campaign.status.name)
-				&& (campaign.spec.activeFrom || 0) < Date.now()
-				&& Array.isArray(campaign.spec.adUnits)
-				&& campaign.depositAsset === this.options.whitelistedToken
-				&& new BN(campaign.spec.minPerImpression)
-					.gte(new BN(this.options.minPerImpression))
-		})
-		return applyTargeting(eligible, this.options)
+		return applySelection(campaigns, this.options)
 	}
 	async getFallbackUnit(): Promise<any> {
 		const { fallbackUnit } = this.options
 		if (!fallbackUnit) return null
 		const url = `${this.options.marketURL}/units/${this.options.fallbackUnit}`
-		const unit = await this.fetch(url).then(r => r.json())
-		return unit
+		const result = await this.fetch(url).then(r => r.json())
+		return result.unit
 	}
 	async getNextAdUnit(): Promise<any> {
 		const units = await this.getAdUnits()
@@ -176,7 +178,9 @@ export class AdViewManager {
 			.reduce((a, b) => Math.min(a, b))
 		const leastShownUnits = units
 			.filter(({ channelId }) => this.getTimesShown(channelId) === min)
-		const next = leastShownUnits[0]
+		const next = this.options.randomize ?
+			leastShownUnits[Math.floor(Math.random() * leastShownUnits.length)]
+			: leastShownUnits[0]
 		this.timesShown[next.channelId] = this.getTimesShown(next.channelId) + 1
 		return { ...next, html: getHTML(this.options, next) }
 	}
