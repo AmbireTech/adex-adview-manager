@@ -115,7 +115,7 @@ function videoHtml({ evBody, onLoadCode, size, imgUrl, mediaMime }): string {
 }
 
 function adexIcon(): string {
-	return  `<a href="https://adex.network" target="_blank" rel="noopener noreferrer"
+	return `<a href="https://adex.network" target="_blank" rel="noopener noreferrer"
 			style="position: absolute; top: 0; right: 0;"
 		>`
 		+ `<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="10px"
@@ -138,8 +138,8 @@ function getUnitHTML({ width, height }: AdViewManagerOptions, { unit, evBody = '
 	const isVideo = (unit.mediaMime || '').split('/')[0] === 'video'
 	const size = width && height ? `width="${width}" height="${height}" ` : ''
 	return `<div
-			style="position: relative; overflow: hidden;"
-		>` 	
+			style="position: relative; overflow: hidden; ${size ? `width: ${width}px; height: ${height}px` : ''}"
+		>`
 		+ `<a href="${unit.targetUrl}" target="_blank" rel="noopener noreferrer">`
 		+ (isVideo
 			? videoHtml({ evBody, onLoadCode, size, imgUrl, mediaMime: unit.mediaMime })
