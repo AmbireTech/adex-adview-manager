@@ -114,15 +114,39 @@ function videoHtml({ evBody, onLoadCode, size, imgUrl, mediaMime }): string {
 		`</video>`
 }
 
+function adexIcon(): string {
+	return `<a href="https://www.adex.network" target="_blank" rel="noopener noreferrer"
+			style="position: absolute; top: 0; right: 0;"
+		>`
+		+ `<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="18px"
+			height="18px" viewBox="0 0 18 18" style="enable-background:new 0 0 18 18;" xml:space="preserve">
+			<style type="text/css">
+				.st0{fill:#FFFFFF;}
+				.st1{fill:#1B75BC;}
+			</style>
+			<defs>
+			</defs>
+			<rect class="st0" width="18" height="18"/>
+			<path class="st1" d="M14,12.1L10.9,9L14,5.9L12.1,4L9,7.1L5.9,4L4,5.9L7.1,9L4,12.1L5.9,14L9,10.9l3.1,3.1L14,12.1z M7.9,2L6.4,3.5
+				L7.9,5L9,3.9L10.1,5l1.5-1.5L10,1.9l-1-1L7.9,2 M7.9,16l-1.5-1.5L7.9,13L9,14.1l1.1-1.1l1.5,1.5L10,16.1l-1,1L7.9,16"/>
+   			</svg>`
+		+ `</a>`
+}
+
 function getUnitHTML({ width, height }: AdViewManagerOptions, { unit, evBody = '', onLoadCode = '' }): string {
 	const imgUrl = normalizeUrl(unit.mediaUrl)
 	const isVideo = (unit.mediaMime || '').split('/')[0] === 'video'
 	const size = width && height ? `width="${width}" height="${height}" ` : ''
-	return `<a href="${unit.targetUrl}" target="_blank" rel="noopener noreferrer">`
+	return `<div
+			style="position: relative; overflow: hidden; ${size ? `width: ${width}px; height: ${height}px;` : ''}"
+		>`
+		+ `<a href="${unit.targetUrl}" target="_blank" rel="noopener noreferrer">`
 		+ (isVideo
 			? videoHtml({ evBody, onLoadCode, size, imgUrl, mediaMime: unit.mediaMime })
 			: imageHtml({ evBody, onLoadCode, size, imgUrl }))
 		+ `</a>`
+		+ adexIcon()
+		+ `</div>`
 }
 
 function getHTML(options: AdViewManagerOptions, { unit, channelId, validators }): string {
