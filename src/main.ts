@@ -138,7 +138,7 @@ function getUnitHTML({ width, height }: AdViewManagerOptions, { unit, evBody = '
 	const isVideo = (unit.mediaMime || '').split('/')[0] === 'video'
 	const size = width && height ? `width="${width}" height="${height}" ` : ''
 	return `<div
-			style="position: relative; overflow: hidden; ${size ? `width: ${width}px; height: ${height}px` : ''}"
+			style="position: relative; overflow: hidden; ${size ? `width: ${width}px; height: ${height}px;` : ''}"
 		>`
 		+ `<a href="${unit.targetUrl}" target="_blank" rel="noopener noreferrer">`
 		+ (isVideo
