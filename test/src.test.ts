@@ -1,5 +1,5 @@
 import * as test from 'tape'
-import { applySelection, normalizeUrl, calculateTargetScore, getHTML, AdViewManagerOptions, IPFS_GATEWAY } from '../src/main'
+import { applySelection, normalizeUrl, calculateTargetScore, getHTML, IPFS_GATEWAY } from '../src/main'
 import { BN } from 'bn.js'
 
 const whitelistedToken = '0x89d24A6b4CcB1B6fAA2625fE562bDD9a23260359'

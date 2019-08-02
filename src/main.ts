@@ -18,7 +18,7 @@ interface TargetTag {
 }
 
 type BigNumStr = string
-export interface AdViewManagerOptions {
+interface AdViewManagerOptions {
 	// Defaulted via defaultOpts
 	marketURL: string,
 	acceptedStates: Array<string>,
