@@ -1,9 +1,9 @@
 import { BN } from 'bn.js'
 
-const IPFS_GATEWAY = 'https://ipfs.adex.network/ipfs/'
+const IPFS_GATEWAY = 'https://ipfs.moonicorn.network/ipfs/'
 
 const defaultOpts = {
-	marketURL: 'https://market.adex.network',
+	marketURL: 'https://market.moonicorn.network',
 	acceptedStates: ['Active', 'Ready'],
 	minPerImpression: '1',
 	minTargetingScore: 0,
