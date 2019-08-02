@@ -4,7 +4,7 @@
   "description": "AdEx Adview manager library",
   "main": "lib/main.js",
   "scripts": {
-    "test": "node test/*",
+    "test": "ts-node node_modules/tape/bin/tape test/**/*.ts",
     "prepublish": "tsc",
     "build": "tsc && time webpack --mode production",
     "start": "tsc && time webpack --mode production && http-server --cors dist.browser",
