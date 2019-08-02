@@ -4,6 +4,7 @@ import { BN } from 'bn.js'
 
 const whitelistedToken = '0x89d24A6b4CcB1B6fAA2625fE562bDD9a23260359'
 
+// Status is expired
 const ineligibleCampaign1 = {
 	depositAsset: whitelistedToken,
 	status: {
@@ -16,6 +17,7 @@ const ineligibleCampaign1 = {
 	}
 }
 
+// Deposit asset not whitelisted
 const ineligibleCampaign2 = {
 	depositAsset: '0x0',
 	status: {
@@ -28,6 +30,7 @@ const ineligibleCampaign2 = {
 	}
 }
 
+// ActiveFrom has not commenced
 const ineligibleCampaign3 = {
 	depositAsset: whitelistedToken,
 	status: {
@@ -40,6 +43,7 @@ const ineligibleCampaign3 = {
 	}
 }
 
+// No adUnits
 const ineligibleCampaign4 = {
 	depositAsset: whitelistedToken,
 	status: {
@@ -51,6 +55,7 @@ const ineligibleCampaign4 = {
 	}
 }
 
+// minPerImpression is too low
 const ineligibleCampaign5 = {
 	depositAsset: whitelistedToken,
 	status: {
