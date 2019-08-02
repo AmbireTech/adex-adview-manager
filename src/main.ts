@@ -1,6 +1,6 @@
 import { BN } from 'bn.js'
 
-const IPFS_GATEWAY = 'https://ipfs.adex.network/ipfs/'
+export const IPFS_GATEWAY = 'https://ipfs.adex.network/ipfs/'
 
 const defaultOpts = {
 	marketURL: 'https://market.adex.network',
@@ -18,7 +18,7 @@ interface TargetTag {
 }
 
 type BigNumStr = string
-interface AdViewManagerOptions {
+export interface AdViewManagerOptions {
 	// Defaulted via defaultOpts
 	marketURL: string,
 	acceptedStates: Array<string>,
