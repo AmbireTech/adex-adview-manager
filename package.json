@@ -35,6 +35,7 @@
   "devDependencies": {
     "@types/tape": "^4.2.33",
     "html-webpack-plugin": "^4.0.0-beta.5",
+    "jsdom": "^15.1.1",
     "node-fetch": "^2.3.0",
     "tape": "^4.11.0",
     "typescript": "^3.5.3",

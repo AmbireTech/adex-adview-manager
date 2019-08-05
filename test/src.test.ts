@@ -1,6 +1,7 @@
 import * as test from 'tape'
 import { applySelection, normalizeUrl, calculateTargetScore, getHTML, IPFS_GATEWAY } from '../src/main'
 import { BN } from 'bn.js'
+import { JSDOM } from 'jsdom'
 
 const whitelistedToken = '0x89d24A6b4CcB1B6fAA2625fE562bDD9a23260359'
 
@@ -100,7 +101,7 @@ const optionsTargetingAndMinScore = {
 }
 optionsTargetingAndMinScore.minTargetingScore = 1000
 
-const unit1 = {
+const defaultUnit = {
 	ipfs : 'QmTgLkd4vvKiBWozfKxc4bDf4U6VAdAwoADvbewfzUrZ34',
 	type : 'legacy_300x100',
 	mediaUrl : 'ipfs://QmUUecheVnWcj8CweBBzrkaWkEwM3yC4spsAamXtMRnQ9G',
@@ -110,28 +111,21 @@ const unit1 = {
 	owner : '0x542810521853f5da0c771473ff2ed3558ff32f44',
 	created : 1562859974189
 }
+const unit1 = {
+	...defaultUnit,
+	targeting : [{tag: 'music', score: 100}, {tag: 'movies', score: 10}]
+}
 
 const unit2 = {
-	ipfs : 'QmTgLkd4vvKiBWozfKxc4bDf4U6VAdAwoADvbewfzUrZ34',
-	type : 'legacy_300x100',
-	mediaUrl : 'ipfs://QmUUecheVnWcj8CweBBzrkaWkEwM3yC4spsAamXtMRnQ9G',
-	mediaMime : 'image/jpeg',
-	targetUrl : 'https://kuramiqnko.com',
-	targeting : [ ],
-	owner : '0x542810521853f5da0c771473ff2ed3558ff32f44',
-	created : 1562859974189
+	...defaultUnit,
+	targeting : [ ]
 }
 
 const unit3 = {
-	ipfs : 'QmTgLkd4vvKiBWozfKxc4bDf4U6VAdAwoADvbewfzUrZ34',
-	type : 'legacy_300x600',
-	mediaUrl : 'ipfs://QmUUecheVnWcj8CweBBzrkaWkEwM3yC4spsAamXtMRnQ9G',
-	mediaMime : 'image/jpeg',
-	targetUrl : 'https://kuramiqnko.com',
-	targeting : [{tag: 'movies', score: 60}],
-	owner : '0x542810521853f5da0c771473ff2ed3558ff32f44',
-	created : 1562859974189
+	...defaultUnit,
+	targeting : [{tag: 'movies', score: 60}]
 }
+unit3.type = 'legacy_300x600'
 
 function getCampaignWithUnits(adUnits: Array<any>) {
 	return {
@@ -191,16 +185,40 @@ test('Get HTML tests', (t) => {
 	const otherInfo = {
 		unit: {
 			ipfs: 'ipfs://QmcUVX7fvoLMM93uN2bD3wGTH8MXSxeL8hojYfL2Lhp7mR',
-			targetUrl: 'https://xxxtentacion.com',
+			targetUrl: 'https://xxxtentacion.com/',
 			mediaUrl: 'ipfs://QmcUVX7fvoLMM93uN2bD3wGTH8MXSxeL8hojYfL2Lhp7mR'
 		},
 		channelId: '0x0',
 		validators: [{ url: 'https://tom.adex.network' }, { url: 'https://jerry.adex.network' }]
 	}
 
-	const resultHTML = `<a href="${otherInfo.unit.targetUrl}" target="_blank" rel="noopener noreferrer"><img src="https://ipfs.adex.network/ipfs/QmcUVX7fvoLMM93uN2bD3wGTH8MXSxeL8hojYfL2Lhp7mR" data-event-body='{"events":[{"type":"IMPRESSION","publisher":"0x13e72959d8055dafa6525050a8cc7c479d4c09a3","adUnit":"ipfs://QmcUVX7fvoLMM93uN2bD3wGTH8MXSxeL8hojYfL2Lhp7mR"}]}' alt="AdEx ad" rel="nofollow" onload="fetch('${otherInfo.validators[0].url}/channel/${otherInfo.channelId}/events', { method: 'POST', headers: { 'content-type': 'application/json' }, body: this.dataset.eventBody });fetch('${otherInfo.validators[1].url}/channel/${otherInfo.channelId}/events', { method: 'POST', headers: { 'content-type': 'application/json' }, body: this.dataset.eventBody })" width="300" height="100" ></a>`
+	const resultHTML = getHTML(options, otherInfo)
+	const document = new JSDOM('html').window.document;
+	const el = document.createElement('body')
+	el.innerHTML = resultHTML
+	const targetEl = el.firstChild.firstChild as HTMLAnchorElement
 
-	t.equals(getHTML(options, otherInfo), resultHTML, 'Returns correct HTML for current settings')
+	t.equals(targetEl.nodeName, 'A', 'Link is link')
+	t.ok(targetEl.hasAttribute('href'), 'Link leads to somewhere')
+	t.equals(targetEl.href, otherInfo.unit.targetUrl, 'Link leads to the right URL')
+
+	const image = targetEl.firstChild as HTMLImageElement
+	t.equals(image.nodeName, 'IMG', 'Link contains an image')
+
+	t.ok(image.hasAttribute('src'), 'Image has attribute src')
+	t.equals(image.getAttribute('src'), `https://ipfs.moonicorn.network/ipfs/${otherInfo.unit.ipfs.substr(7)}`, 'Image has correct source')
+
+	t.ok(image.hasAttribute('data-event-body'), 'Image has attribute data-event-body')
+
+	t.ok(image.hasAttribute('alt'), 'Image has attribute alt')
+	t.equals(image.getAttribute('alt'), 'AdEx ad', 'Alt is correct')
+	t.ok(image.hasAttribute('rel'), 'Image has attribute rel')
+	t.ok(image.hasAttribute('onload'), 'Image has attribute onload')
+
+	t.ok(image.hasAttribute('width'), 'Image has attribute width')
+	t.equals(image.getAttribute('width'), options.width.toString(), 'Image has correct width')
+	t.ok(image.hasAttribute('height'), 'Image has attribute height')
+	t.equals(image.getAttribute('height'), options.height.toString(), 'Image has correct height')
 	t.end()
 })
 
