@@ -82,7 +82,7 @@ function applySelection(campaigns: Array<any>, options: AdViewManagerOptions): A
 	const unitsTopFiltered = options.whitelistedType
 		? unitsTop.filter(x =>
 			x.unit.type === options.whitelistedType
-			&& !(options.disableVideo && isVideo(x))
+			&& !(options.disableVideo && isVideo(x.unit))
 		)
 		: unitsTop
 
