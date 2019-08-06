@@ -186,7 +186,8 @@ test('Get HTML tests', (t) => {
 		unit: {
 			ipfs: 'ipfs://QmcUVX7fvoLMM93uN2bD3wGTH8MXSxeL8hojYfL2Lhp7mR',
 			targetUrl: 'https://xxxtentacion.com/',
-			mediaUrl: 'ipfs://QmcUVX7fvoLMM93uN2bD3wGTH8MXSxeL8hojYfL2Lhp7mR'
+			mediaUrl: 'ipfs://QmcUVX7fvoLMM93uN2bD3wGTH8MXSxeL8hojYfL2Lhp7mR',
+			mediaMime: ''
 		},
 		channelId: '0x0',
 		validators: [{ url: 'https://tom.adex.network' }, { url: 'https://jerry.adex.network' }]
@@ -219,8 +220,39 @@ test('Get HTML tests', (t) => {
 	t.equals(image.getAttribute('width'), options.width.toString(), 'Image has correct width')
 	t.ok(image.hasAttribute('height'), 'Image has attribute height')
 	t.equals(image.getAttribute('height'), options.height.toString(), 'Image has correct height')
+	test('Video HTML tests', (t) => {
+		const videoInfo = {
+			...otherInfo
+		}
+		videoInfo.unit.mediaMime = 'video/mp4'
+
+		const videoResult = getHTML(options, videoInfo)
+		const videoEl = document.createElement('body')
+		videoEl.innerHTML = videoResult
+		const video = videoEl.firstChild.firstChild.firstChild as HTMLVideoElement
+
+		t.equals(video.nodeName, 'VIDEO', 'Video is a video element')
+		t.ok(video.hasAttribute('width'), 'Video has attribute width')
+		t.equals(video.getAttribute('width'), options.width.toString(), 'Video has corect width')
+		t.ok(video.hasAttribute('height'), 'Video has attribute height')
+		t.equals(video.getAttribute('height'), options.height.toString(), 'Video has corect height')
+		t.ok(video.hasAttribute('loop'), 'Video has attribute loop')
+		t.ok(video.hasAttribute('autoplay'), 'Video has attribute autoplay')
+		t.ok(video.hasAttribute('data-event-body'), 'Video has attribute data-event-body')
+		t.ok(video.hasAttribute('onloadeddata'), 'Video has attribute onloadeddata')
+		t.ok(video.hasAttribute('muted'), 'Video has attribute muted')
+
+		const source = video.firstChild as HTMLSourceElement
+		t.equals(source.nodeName, 'SOURCE', 'Source is a source element')
+		t.ok(source.hasAttribute('src'), 'Source has attribute src')
+		t.equals(source.getAttribute('src'), `https://ipfs.moonicorn.network/ipfs/${otherInfo.unit.ipfs.substr(7)}`, 'Video has correct source')
+		t.ok(source.hasAttribute('type'), 'Source has attribute type')
+		t.equals(source.getAttribute('type'), videoInfo.unit.mediaMime, 'Video has correct mime')
+		t.end()
+	})
 	t.end()
 })
+
 
 test('Apply Selection tests', (t) => {
 	t.deepEquals(applySelection([], options), [], 'No campaigns returns empty array')
