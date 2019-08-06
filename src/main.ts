@@ -10,6 +10,7 @@ const defaultOpts = {
 	topByPrice: 10,
 	topByScore: 5,
 	randomize: true,
+	disableVideo: false,
 }
 
 interface TargetTag {
@@ -34,7 +35,8 @@ interface AdViewManagerOptions {
 	targeting?: Array<TargetTag>,
 	width?: number,
 	height?: number,
-	fallbackUnit?: string
+	fallbackUnit?: string,
+	disableVideo?: boolean,
 }
 
 function calculateTargetScore(a: Array<TargetTag>, b: Array<TargetTag>): number {
@@ -78,7 +80,10 @@ function applySelection(campaigns: Array<any>, options: AdViewManagerOptions): A
 		: unitsByPrice
 
 	const unitsTopFiltered = options.whitelistedType
-		? unitsTop.filter(x => x.unit.type === options.whitelistedType)
+		? unitsTop.filter(x =>
+			x.unit.type === options.whitelistedType
+			&& !(options.disableVideo && isVideo(x))
+		)
 		: unitsTop
 
 	const unitsByScore = unitsTopFiltered
@@ -133,15 +138,18 @@ function adexIcon(): string {
 		+ `</a>`
 }
 
+function isVideo(unit: any): boolean {
+	return  (unit.mediaMime || '').split('/')[0] === 'video'
+}
+
 function getUnitHTML({ width, height }: AdViewManagerOptions, { unit, evBody = '', onLoadCode = '' }): string {
 	const imgUrl = normalizeUrl(unit.mediaUrl)
-	const isVideo = (unit.mediaMime || '').split('/')[0] === 'video'
 	const size = width && height ? `width="${width}" height="${height}" ` : ''
 	return `<div
 			style="position: relative; overflow: hidden; ${size ? `width: ${width}px; height: ${height}px;` : ''}"
 		>`
 		+ `<a href="${unit.targetUrl}" target="_blank" rel="noopener noreferrer">`
-		+ (isVideo
+		+ (isVideo(unit)
 			? videoHtml({ evBody, onLoadCode, size, imgUrl, mediaMime: unit.mediaMime })
 			: imageHtml({ evBody, onLoadCode, size, imgUrl }))
 		+ `</a>`
