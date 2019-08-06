@@ -1,6 +1,6 @@
 {
   "name": "adex-adview-manager",
-  "version": "1.4.3",
+  "version": "1.4.4",
   "description": "AdEx Adview manager library",
   "main": "lib/main.js",
   "scripts": {
