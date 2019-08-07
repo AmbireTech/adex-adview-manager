@@ -1,6 +1,6 @@
 import { BN } from 'bn.js'
 
-const IPFS_GATEWAY = 'https://ipfs.moonicorn.network/ipfs/'
+export const IPFS_GATEWAY = 'https://ipfs.moonicorn.network/ipfs/'
 
 const defaultOpts = {
 	marketURL: 'https://market.moonicorn.network',
@@ -39,7 +39,7 @@ interface AdViewManagerOptions {
 	disableVideo?: boolean,
 }
 
-function calculateTargetScore(a: Array<TargetTag>, b: Array<TargetTag>): number {
+export function calculateTargetScore(a: Array<TargetTag>, b: Array<TargetTag>): number {
 	return a.map(x => {
 		const match = b.find(y => y.tag === x.tag)
 		if (match) {
@@ -49,7 +49,7 @@ function calculateTargetScore(a: Array<TargetTag>, b: Array<TargetTag>): number 
 	}).reduce((a, b) => a + b, 0)
 }
 
-function applySelection(campaigns: Array<any>, options: AdViewManagerOptions): Array<any> {
+export function applySelection(campaigns: Array<any>, options: AdViewManagerOptions): Array<any> {
 	const eligible = campaigns.filter(campaign => {
 		return options.acceptedStates.includes(campaign.status.name)
 			&& (campaign.spec.activeFrom || 0) < Date.now()
@@ -157,7 +157,7 @@ function getUnitHTML({ width, height }: AdViewManagerOptions, { unit, evBody = '
 		+ `</div>`
 }
 
-function getHTML(options: AdViewManagerOptions, { unit, channelId, validators }): string {
+export function getHTML(options: AdViewManagerOptions, { unit, channelId, validators }): string {
 	const evBody = JSON.stringify({ events: [{ type: 'IMPRESSION', publisher: options.publisherAddr, adUnit: unit.ipfs }] })
 	const onLoadCode = validators
 		.map(({ url }) => {
