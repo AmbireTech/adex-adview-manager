@@ -197,13 +197,13 @@ test('Get HTML tests', (t) => {
 	const document = new JSDOM('html').window.document;
 	const el = document.createElement('body')
 	el.innerHTML = resultHTML
-	const targetEl = el.firstChild.firstChild as HTMLAnchorElement
+	const targetEl = el.firstChild.firstChild
 
 	t.equals(targetEl.nodeName, 'A', 'Link is link')
 	t.ok(targetEl.hasAttribute('href'), 'Link leads to somewhere')
 	t.equals(targetEl.href, otherInfo.unit.targetUrl, 'Link leads to the right URL')
 
-	const image = targetEl.firstChild as HTMLImageElement
+	const image = targetEl.firstChild
 	t.equals(image.nodeName, 'IMG', 'Link contains an image')
 
 	t.ok(image.hasAttribute('src'), 'Image has attribute src')
@@ -229,7 +229,7 @@ test('Get HTML tests', (t) => {
 		const videoResult = getHTML(options, videoInfo)
 		const videoEl = document.createElement('body')
 		videoEl.innerHTML = videoResult
-		const video = videoEl.firstChild.firstChild.firstChild as HTMLVideoElement
+		const video = videoEl.firstChild.firstChild.firstChild
 
 		t.equals(video.nodeName, 'VIDEO', 'Video is a video element')
 		t.ok(video.hasAttribute('width'), 'Video has attribute width')
@@ -242,7 +242,7 @@ test('Get HTML tests', (t) => {
 		t.ok(video.hasAttribute('onloadeddata'), 'Video has attribute onloadeddata')
 		t.ok(video.hasAttribute('muted'), 'Video has attribute muted')
 
-		const source = video.firstChild as HTMLSourceElement
+		const source = video.firstChild
 		t.equals(source.nodeName, 'SOURCE', 'Source is a source element')
 		t.ok(source.hasAttribute('src'), 'Source has attribute src')
 		t.equals(source.getAttribute('src'), `https://ipfs.moonicorn.network/ipfs/${otherInfo.unit.ipfs.substr(7)}`, 'Video has correct source')
