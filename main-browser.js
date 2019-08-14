@@ -4,6 +4,13 @@ function initWithOptions(options) {
 	// emergency fix
 	if (options.publisher) options.publisherAddr = options.publisher;
 	// end of emergency fix
+	// automatic language targeting
+	if (navigator.language) {
+		options.targeting = Array.isArray(options.targeting) ? options.targeting : [];
+		if (!options.targeting.some(({ tag }) => tag.startsWith('lang_'))) {
+			options.targeting.push({ tag: 'lang_'+navigator.language, score: 20 })
+		}
+	}
 	const mgr = new AdViewManager((url, o) => fetch(url, o), options)
 	mgr.getNextAdUnit().then(u => {
 		if (u) {
