@@ -175,7 +175,7 @@ export class AdViewManager {
 	private fetch: any
 	private options: AdViewManagerOptions
 	private timesShown: { [key: string]: number }
-	private optsUpdated: boolean
+	private optsLoaded: boolean
 	private getTimesShown(channelId: string): number {
 		return this.timesShown[channelId] || 0
 	}
@@ -183,31 +183,24 @@ export class AdViewManager {
 		this.fetch = fetch
 		this.options = { ...defaultOpts, ...opts }
 		this.timesShown = {}
-		this.optsUpdated = false
+		this.optsLoaded = false
 	}
-	async applyMarketOptions() {
-		const {
-			marketSlot,
-			fallbackUnit,
-			whitelistedToken,
-			minPerImpression,
-			minTargetingScore,
-			targeting
-		} = this.options
+	async loadOptionsFromMarket() {
+		const opts = this.options
 
-		if (!this.optsUpdated && marketSlot) {
-			const url = `${this.options.marketURL}/slots/${marketSlot}`
+		if (!this.optsLoaded && opts.marketSlot) {
+			const url = `${opts.marketURL}/slots/${opts.marketSlot}`
 			const resSlot = await this.fetch(url).then(r => r.json())
-			const resMinPerImpression = (resSlot.minPerImpression || {})[whitelistedToken]
+			const resMinPerImpression = (resSlot.minPerImpression || {})[opts.whitelistedToken]
 			const optsOverride = {
-				fallbackUnit: resSlot.fallbackUnit || fallbackUnit,
-				minPerImpression: resMinPerImpression || minPerImpression,
-				minTargetingScore: resSlot.minTargetingScore || minTargetingScore,
-				targeting: resSlot.tags || targeting
+				fallbackUnit: resSlot.fallbackUnit || opts.fallbackUnit,
+				minPerImpression: resMinPerImpression || opts.minPerImpression,
+				minTargetingScore: resSlot.minTargetingScore || opts.minTargetingScore,
+				targeting: resSlot.tags || opts.targeting
 			}
 
-			this.options = { ...this.options, ...optsOverride }
-			this.optsUpdated = true
+			this.options = { ...opts, ...optsOverride }
+			this.optsLoaded = true
 		}
 	}
 
@@ -226,7 +219,7 @@ export class AdViewManager {
 		return result.unit
 	}
 	async getNextAdUnit(): Promise<any> {
-		await this.applyMarketOptions()
+		await this.loadOptionsFromMarket()
 		const units = await this.getAdUnits()
 		if (units.length === 0) {
 			const fallbackUnit = await this.getFallbackUnit()
