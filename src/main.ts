@@ -189,18 +189,25 @@ export class AdViewManager {
 		const opts = this.options
 
 		if (!this.optsLoaded && opts.marketSlot) {
-			const url = `${opts.marketURL}/slots/${opts.marketSlot}`
-			const resSlot = await this.fetch(url).then(r => r.json())
-			const resMinPerImpression = (resSlot.minPerImpression || {})[opts.whitelistedToken]
-			const optsOverride = {
-				fallbackUnit: resSlot.fallbackUnit || opts.fallbackUnit,
-				minPerImpression: resMinPerImpression || opts.minPerImpression,
-				minTargetingScore: resSlot.minTargetingScore || opts.minTargetingScore,
-				targeting: resSlot.tags || opts.targeting
-			}
+				const url = `${opts.marketURL}/slots/${opts.marketSlot}`
+				const resSlot = await this.fetch(url)
+					.then(r => {
+						if(r.status >= 200 && r.status < 400){
+							return r.json().then(res => res.slot)
+						} else {
+							return {}
+						}
+					})
+				const resMinPerImpression = (resSlot.minPerImpression || {})[opts.whitelistedToken]
+				const optsOverride = {
+					fallbackUnit: resSlot.fallbackUnit || opts.fallbackUnit,
+					minPerImpression: resMinPerImpression || opts.minPerImpression,
+					minTargetingScore: resSlot.minTargetingScore || opts.minTargetingScore,
+					targeting: resSlot.tags || opts.targeting
+				}
 
-			this.options = { ...opts, ...optsOverride }
-			this.optsLoaded = true
+				this.options = { ...opts, ...optsOverride }
+				this.optsLoaded = true
 		}
 	}
 
