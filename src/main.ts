@@ -37,6 +37,7 @@ interface AdViewManagerOptions {
 	height?: number,
 	fallbackUnit?: string,
 	disableVideo?: boolean,
+	marketSlot?: string
 }
 
 export function calculateTargetScore(a: Array<TargetTag>, b: Array<TargetTag>): number {
@@ -139,7 +140,7 @@ function adexIcon(): string {
 }
 
 function isVideo(unit: any): boolean {
-	return  (unit.mediaMime || '').split('/')[0] === 'video'
+	return (unit.mediaMime || '').split('/')[0] === 'video'
 }
 
 function getUnitHTML({ width, height }: AdViewManagerOptions, { unit, evBody = '', onLoadCode = '' }): string {
@@ -174,6 +175,7 @@ export class AdViewManager {
 	private fetch: any
 	private options: AdViewManagerOptions
 	private timesShown: { [key: string]: number }
+	private optsLoaded: boolean
 	private getTimesShown(channelId: string): number {
 		return this.timesShown[channelId] || 0
 	}
@@ -181,7 +183,34 @@ export class AdViewManager {
 		this.fetch = fetch
 		this.options = { ...defaultOpts, ...opts }
 		this.timesShown = {}
+		this.optsLoaded = false
 	}
+	async loadOptionsFromMarket() {
+		const opts = this.options
+
+		if (!this.optsLoaded && opts.marketSlot) {
+				const url = `${opts.marketURL}/slots/${opts.marketSlot}`
+				const resSlot = await this.fetch(url)
+					.then(r => {
+						if(r.status >= 200 && r.status < 400){
+							return r.json().then(res => res.slot)
+						} else {
+							return {}
+						}
+					})
+				const resMinPerImpression = (resSlot.minPerImpression || {})[opts.whitelistedToken]
+				const optsOverride = {
+					fallbackUnit: resSlot.fallbackUnit || opts.fallbackUnit,
+					minPerImpression: resMinPerImpression || opts.minPerImpression,
+					minTargetingScore: resSlot.minTargetingScore || opts.minTargetingScore,
+					targeting: resSlot.tags || opts.targeting
+				}
+
+				this.options = { ...opts, ...optsOverride }
+				this.optsLoaded = true
+		}
+	}
+
 	async getAdUnits(): Promise<any> {
 		const states = `status=${this.options.acceptedStates.join(',')}`
 		const publisherLimit = `limitForPublisher=${this.options.publisherAddr}`
@@ -197,6 +226,7 @@ export class AdViewManager {
 		return result.unit
 	}
 	async getNextAdUnit(): Promise<any> {
+		await this.loadOptionsFromMarket()
 		const units = await this.getAdUnits()
 		if (units.length === 0) {
 			const fallbackUnit = await this.getFallbackUnit()
