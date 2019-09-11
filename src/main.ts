@@ -183,7 +183,9 @@ export class AdViewManager {
 		this.timesShown = {}
 	}
 	async getAdUnits(): Promise<any> {
-		const url = `${this.options.marketURL}/campaigns?status=${this.options.acceptedStates.join(',')}`
+		const states = `status=${this.options.acceptedStates.join(',')}`
+		const publisherLimit = `limitForPublisher=${this.options.publisherAddr}`
+		const url = `${this.options.marketURL}/campaigns?${states}&${publisherLimit}`
 		const campaigns = await this.fetch(url).then(r => r.json())
 		return applySelection(campaigns, this.options)
 	}
