@@ -140,7 +140,7 @@ function adexIcon(): string {
 }
 
 function isVideo(unit: any): boolean {
-	return  (unit.mediaMime || '').split('/')[0] === 'video'
+	return (unit.mediaMime || '').split('/')[0] === 'video'
 }
 
 function getUnitHTML({ width, height }: AdViewManagerOptions, { unit, evBody = '', onLoadCode = '' }): string {
@@ -187,15 +187,15 @@ export class AdViewManager {
 	}
 	async applyMarketOptions() {
 		const {
-			 marketSlot, 
-			 fallbackUnit, 
-			 whitelistedToken, 
-			 minPerImpression, 
-			 minTargetingScore,
-			 targeting
-			} = this.options
+			marketSlot,
+			fallbackUnit,
+			whitelistedToken,
+			minPerImpression,
+			minTargetingScore,
+			targeting
+		} = this.options
 
-		if(!this.optsUpdated && marketSlot) {
+		if (!this.optsUpdated && marketSlot) {
 			const url = `${this.options.marketURL}/slots/${marketSlot}`
 			const resSlot = await this.fetch(url).then(r => r.json())
 			const resMinPerImpression = (resSlot.minPerImpression || {})[whitelistedToken]
