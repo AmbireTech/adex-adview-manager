@@ -37,6 +37,7 @@ interface AdViewManagerOptions {
 	height?: number,
 	fallbackUnit?: string,
 	disableVideo?: boolean,
+	marketSlot?: string
 }
 
 export function calculateTargetScore(a: Array<TargetTag>, b: Array<TargetTag>): number {
@@ -174,6 +175,7 @@ export class AdViewManager {
 	private fetch: any
 	private options: AdViewManagerOptions
 	private timesShown: { [key: string]: number }
+	private optsUpdated: boolean
 	private getTimesShown(channelId: string): number {
 		return this.timesShown[channelId] || 0
 	}
@@ -181,7 +183,34 @@ export class AdViewManager {
 		this.fetch = fetch
 		this.options = { ...defaultOpts, ...opts }
 		this.timesShown = {}
+		this.optsUpdated = false
 	}
+	async applyMarketOptions() {
+		const {
+			 marketSlot, 
+			 fallbackUnit, 
+			 whitelistedToken, 
+			 minPerImpression, 
+			 minTargetingScore,
+			 targeting
+			} = this.options
+
+		if(!this.optsUpdated && marketSlot) {
+			const url = `${this.options.marketURL}/slots/${marketSlot}`
+			const resSlot = await this.fetch(url).then(r => r.json())
+			const resMinPerImpression = (resSlot.minPerImpression || {})[whitelistedToken]
+			const optsOverride = {
+				fallbackUnit: resSlot.fallbackUnit || fallbackUnit,
+				minPerImpression: resMinPerImpression || minPerImpression,
+				minTargetingScore: resSlot.minTargetingScore || minTargetingScore,
+				targeting: resSlot.tags || targeting
+			}
+
+			this.options = { ...this.options, ...optsOverride }
+			this.optsUpdated = true
+		}
+	}
+
 	async getAdUnits(): Promise<any> {
 		const url = `${this.options.marketURL}/campaigns?status=${this.options.acceptedStates.join(',')}`
 		const campaigns = await this.fetch(url).then(r => r.json())
@@ -195,6 +224,7 @@ export class AdViewManager {
 		return result.unit
 	}
 	async getNextAdUnit(): Promise<any> {
+		await this.applyMarketOptions()
 		const units = await this.getAdUnits()
 		if (units.length === 0) {
 			const fallbackUnit = await this.getFallbackUnit()
