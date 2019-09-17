@@ -1,15 +1,16 @@
 import { BN } from 'bn.js'
 
-const IPFS_GATEWAY = 'https://ipfs.adex.network/ipfs/'
+export const IPFS_GATEWAY = 'https://ipfs.moonicorn.network/ipfs/'
 
 const defaultOpts = {
-	marketURL: 'https://market.adex.network',
+	marketURL: 'https://market.moonicorn.network',
 	acceptedStates: ['Active', 'Ready'],
 	minPerImpression: '1',
 	minTargetingScore: 0,
 	topByPrice: 10,
 	topByScore: 5,
 	randomize: true,
+	disableVideo: false,
 }
 
 interface TargetTag {
@@ -34,10 +35,12 @@ interface AdViewManagerOptions {
 	targeting?: Array<TargetTag>,
 	width?: number,
 	height?: number,
-	fallbackUnit?: string
+	fallbackUnit?: string,
+	disableVideo?: boolean,
+	marketSlot?: string
 }
 
-function calculateTargetScore(a: Array<TargetTag>, b: Array<TargetTag>): number {
+export function calculateTargetScore(a: Array<TargetTag>, b: Array<TargetTag>): number {
 	return a.map(x => {
 		const match = b.find(y => y.tag === x.tag)
 		if (match) {
@@ -47,7 +50,7 @@ function calculateTargetScore(a: Array<TargetTag>, b: Array<TargetTag>): number 
 	}).reduce((a, b) => a + b, 0)
 }
 
-function applySelection(campaigns: Array<any>, options: AdViewManagerOptions): Array<any> {
+export function applySelection(campaigns: Array<any>, options: AdViewManagerOptions): Array<any> {
 	const eligible = campaigns.filter(campaign => {
 		return options.acceptedStates.includes(campaign.status.name)
 			&& (campaign.spec.activeFrom || 0) < Date.now()
@@ -78,7 +81,10 @@ function applySelection(campaigns: Array<any>, options: AdViewManagerOptions): A
 		: unitsByPrice
 
 	const unitsTopFiltered = options.whitelistedType
-		? unitsTop.filter(x => x.unit.type === options.whitelistedType)
+		? unitsTop.filter(x =>
+			x.unit.type === options.whitelistedType
+			&& !(options.disableVideo && isVideo(x.unit))
+		)
 		: unitsTop
 
 	const unitsByScore = unitsTopFiltered
@@ -114,18 +120,45 @@ function videoHtml({ evBody, onLoadCode, size, imgUrl, mediaMime }): string {
 		`</video>`
 }
 
-function getUnitHTML({ width, height }: AdViewManagerOptions, { unit, evBody = '', onLoadCode = '' }): string {
-	const imgUrl = normalizeUrl(unit.mediaUrl)
-	const isVideo = (unit.mediaMime || '').split('/')[0] === 'video'
-	const size = width && height ? `width="${width}" height="${height}" ` : ''
-	return `<a href="${unit.targetUrl}" target="_blank" rel="noopener noreferrer">`
-		+ (isVideo
-			? videoHtml({ evBody, onLoadCode, size, imgUrl, mediaMime: unit.mediaMime })
-			: imageHtml({ evBody, onLoadCode, size, imgUrl }))
+function adexIcon(): string {
+	return `<a href="https://www.adex.network" target="_blank" rel="noopener noreferrer"
+			style="position: absolute; top: 0; right: 0;"
+		>`
+		+ `<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="18px"
+			height="18px" viewBox="0 0 18 18" style="enable-background:new 0 0 18 18;" xml:space="preserve">
+			<style type="text/css">
+				.st0{fill:#FFFFFF;}
+				.st1{fill:#1B75BC;}
+			</style>
+			<defs>
+			</defs>
+			<rect class="st0" width="18" height="18"/>
+			<path class="st1" d="M14,12.1L10.9,9L14,5.9L12.1,4L9,7.1L5.9,4L4,5.9L7.1,9L4,12.1L5.9,14L9,10.9l3.1,3.1L14,12.1z M7.9,2L6.4,3.5
+				L7.9,5L9,3.9L10.1,5l1.5-1.5L10,1.9l-1-1L7.9,2 M7.9,16l-1.5-1.5L7.9,13L9,14.1l1.1-1.1l1.5,1.5L10,16.1l-1,1L7.9,16"/>
+   			</svg>`
 		+ `</a>`
 }
 
-function getHTML(options: AdViewManagerOptions, { unit, channelId, validators }): string {
+function isVideo(unit: any): boolean {
+	return (unit.mediaMime || '').split('/')[0] === 'video'
+}
+
+function getUnitHTML({ width, height }: AdViewManagerOptions, { unit, evBody = '', onLoadCode = '' }): string {
+	const imgUrl = normalizeUrl(unit.mediaUrl)
+	const size = width && height ? `width="${width}" height="${height}" ` : ''
+	return `<div
+			style="position: relative; overflow: hidden; ${size ? `width: ${width}px; height: ${height}px;` : ''}"
+		>`
+		+ `<a href="${unit.targetUrl}" target="_blank" rel="noopener noreferrer">`
+		+ (isVideo(unit)
+			? videoHtml({ evBody, onLoadCode, size, imgUrl, mediaMime: unit.mediaMime })
+			: imageHtml({ evBody, onLoadCode, size, imgUrl }))
+		+ `</a>`
+		+ adexIcon()
+		+ `</div>`
+}
+
+export function getHTML(options: AdViewManagerOptions, { unit, channelId, validators }): string {
 	const evBody = JSON.stringify({ events: [{ type: 'IMPRESSION', publisher: options.publisherAddr, adUnit: unit.ipfs }] })
 	const onLoadCode = validators
 		.map(({ url }) => {
@@ -142,6 +175,7 @@ export class AdViewManager {
 	private fetch: any
 	private options: AdViewManagerOptions
 	private timesShown: { [key: string]: number }
+	private optsLoaded: boolean
 	private getTimesShown(channelId: string): number {
 		return this.timesShown[channelId] || 0
 	}
@@ -149,9 +183,40 @@ export class AdViewManager {
 		this.fetch = fetch
 		this.options = { ...defaultOpts, ...opts }
 		this.timesShown = {}
+		this.optsLoaded = false
 	}
+	async loadOptionsFromMarket() {
+		const opts = this.options
+
+		if (!this.optsLoaded && opts.marketSlot) {
+				const url = `${opts.marketURL}/slots/${opts.marketSlot}`
+				const resSlot = await this.fetch(url)
+					.then(r => {
+						if(r.status >= 200 && r.status < 400){
+							return r.json().then(res => res.slot)
+						} else {
+							return {}
+						}
+					})
+				const resMinPerImpression = (resSlot.minPerImpression || {})[opts.whitelistedToken]
+				const optsOverride = {
+					fallbackUnit: resSlot.fallbackUnit || opts.fallbackUnit,
+					minPerImpression: resMinPerImpression || opts.minPerImpression,
+					minTargetingScore: resSlot.minTargetingScore || opts.minTargetingScore,
+					targeting: resSlot.tags || opts.targeting
+				}
+
+				this.options = { ...opts, ...optsOverride }
+				this.optsLoaded = true
+		}
+	}
+
 	async getAdUnits(): Promise<any> {
-		const url = `${this.options.marketURL}/campaigns?byEarner=${this.options.publisherAddr}&limitForPublisher=${this.options.publisherAddr}&status=${this.options.acceptedStates.join(',')}`
+		// TODO: Decide which url const to use
+		// const url = `${this.options.marketURL}/campaigns?byEarner=${this.options.publisherAddr}&limitForPublisher=${this.options.publisherAddr}&status=${this.options.acceptedStates.join(',')}`
+		const states = `status=${this.options.acceptedStates.join(',')}`
+		const publisherLimit = `limitForPublisher=${this.options.publisherAddr}`
+		const url = `${this.options.marketURL}/campaigns?${states}&${publisherLimit}`
 		const campaigns = await this.fetch(url).then(r => r.json())
 		return applySelection(campaigns, this.options)
 	}
@@ -159,10 +224,11 @@ export class AdViewManager {
 		const { fallbackUnit } = this.options
 		if (!fallbackUnit) return null
 		const url = `${this.options.marketURL}/units/${this.options.fallbackUnit}`
-		const unit = await this.fetch(url).then(r => r.json())
-		return unit
+		const result = await this.fetch(url).then(r => r.json())
+		return result.unit
 	}
 	async getNextAdUnit(): Promise<any> {
+		await this.loadOptionsFromMarket()
 		const units = await this.getAdUnits()
 		if (units.length === 0) {
 			const fallbackUnit = await this.getFallbackUnit()
