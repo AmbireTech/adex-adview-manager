@@ -73,21 +73,21 @@ export function applySelection(campaigns: Array<any>, options: AdViewManagerOpti
 		)
 		.reduce((a, b) => a.concat(b), [])
 
-	const unitsByPrice = units
+	const unitsFiltered = options.whitelistedType
+		? units.filter(x =>
+			x.unit.type === options.whitelistedType
+			&& !(options.disableVideo && isVideo(x.unit))
+		)
+		: units
+
+	const unitsByPrice = unitsFiltered
 		.sort((b, a) => new BN(a.minPerImpression).cmp(new BN(b.minPerImpression)))
 
 	const unitsTop = options.topByPrice
 		? unitsByPrice.slice(0, options.topByPrice)
 		: unitsByPrice
 
-	const unitsTopFiltered = options.whitelistedType
-		? unitsTop.filter(x =>
-			x.unit.type === options.whitelistedType
-			&& !(options.disableVideo && isVideo(x.unit))
-		)
-		: unitsTop
-
-	const unitsByScore = unitsTopFiltered
+	const unitsByScore = unitsTop
 		.map(x => ({
 			...x,
 			targetingScore: calculateTargetScore(x.unit.targeting, options.targeting || []),
