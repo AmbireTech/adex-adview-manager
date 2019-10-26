@@ -102,7 +102,7 @@ export function applySelection(campaigns: Array<any>, options: AdViewManagerOpti
 		? unitsByScore.slice(0, options.topByScore)
 		: unitsByScore
 
-	return unitsByScore
+	return unitsTopByScore
 }
 
 export function normalizeUrl(url: string): string {
