@@ -160,11 +160,10 @@ function getUnitHTML({ width, height }: AdViewManagerOptions, { unit, onLoadCode
 
 export function getHTML(options: AdViewManagerOptions, { unit, channelId, validators }): string {
 	const getBody = (evType) => `JSON.stringify({ events: [{ type: '${evType}', publisher: '${options.publisherAddr}', adUnit: '${unit.ipfs}' }] })`
-	const getCode = (evType) => validators
+	const getCode = (evType) => `var fetchOpts = { method: 'POST', headers: { 'content-type': 'application/json' }, body: ${getBody(evType)} };` + validators
 		.map(({ url }) => {
-			const fetchOpts = `{ method: 'POST', headers: { 'content-type': 'application/json' }, body: ${getBody(evType)} }`
 			const fetchUrl = `${url}/channel/${channelId}/events`
-			return `fetch('${fetchUrl}',${fetchOpts})`
+			return `fetch('${fetchUrl}',fetchOpts)`
 		})
 		.join(';')
 
