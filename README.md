@@ -36,6 +36,7 @@ Brief description of each one:
 * `whitelistedToken`: the address of the whitelisted payment token
 * `whitelistedType`: the allowed type of the ad unit; don't pass that in (or set to `null`) if you want to allow all types
 * `topByPrice`: how many ad units to consider after sorting by price
+* `topByScore`: how many ad units to consider after sorting by targeting
 * `targeting`: what targeting tags to apply
 
 For detailed information on how the bidding process works, see: https://github.com/AdExNetwork/adex-protocol/blob/master/components/validator-stack.md#bidding-process
