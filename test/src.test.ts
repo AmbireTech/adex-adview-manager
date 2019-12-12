@@ -209,8 +209,6 @@ test('Get HTML tests', (t) => {
 	t.ok(image.hasAttribute('src'), 'Image has attribute src')
 	t.equals(image.getAttribute('src'), `https://ipfs.moonicorn.network/ipfs/${otherInfo.unit.ipfs.substr(7)}`, 'Image has correct source')
 
-	t.ok(image.hasAttribute('data-event-body'), 'Image has attribute data-event-body')
-
 	t.ok(image.hasAttribute('alt'), 'Image has attribute alt')
 	t.equals(image.getAttribute('alt'), 'AdEx ad', 'Alt is correct')
 	t.ok(image.hasAttribute('rel'), 'Image has attribute rel')
@@ -238,7 +236,6 @@ test('Get HTML tests', (t) => {
 		t.equals(video.getAttribute('height'), options.height.toString(), 'Video has corect height')
 		t.ok(video.hasAttribute('loop'), 'Video has attribute loop')
 		t.ok(video.hasAttribute('autoplay'), 'Video has attribute autoplay')
-		t.ok(video.hasAttribute('data-event-body'), 'Video has attribute data-event-body')
 		t.ok(video.hasAttribute('onloadeddata'), 'Video has attribute onloadeddata')
 		t.ok(video.hasAttribute('muted'), 'Video has attribute muted')
 
