@@ -143,13 +143,13 @@ function isVideo(unit: any): boolean {
 	return (unit.mediaMime || '').split('/')[0] === 'video'
 }
 
-function getUnitHTML({ width, height }: AdViewManagerOptions, { unit, onLoadCode = '' }): string {
+function getUnitHTML({ width, height }: AdViewManagerOptions, { unit, onLoadCode = '', onClickCode = '' }): string {
 	const imgUrl = normalizeUrl(unit.mediaUrl)
 	const size = width && height ? `width="${width}" height="${height}" ` : ''
 	return `<div
 			style="position: relative; overflow: hidden; ${size ? `width: ${width}px; height: ${height}px;` : ''}"
 		>`
-		+ `<a href="${unit.targetUrl}" target="_blank" rel="noopener noreferrer">`
+		+ `<a href="${unit.targetUrl}" target="_blank" onclick="${onClickCode}" rel="noopener noreferrer">`
 		+ (isVideo(unit)
 			? videoHtml({ onLoadCode, size, imgUrl, mediaMime: unit.mediaMime })
 			: imageHtml({ onLoadCode, size, imgUrl }))
@@ -167,7 +167,7 @@ export function getHTML(options: AdViewManagerOptions, { unit, channelId, valida
 		})
 		.join(';')
 
-	return getUnitHTML(options, { unit, onLoadCode: getCode('IMPRESSION') })
+	return getUnitHTML(options, { unit, onLoadCode: getCode('IMPRESSION'), onClickCode: getCode('CLICK') })
 }
 
 export class AdViewManager {

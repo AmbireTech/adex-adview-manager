@@ -201,6 +201,7 @@ test('Get HTML tests', (t) => {
 
 	t.equals(targetEl.nodeName, 'A', 'Link is link')
 	t.ok(targetEl.hasAttribute('href'), 'Link leads to somewhere')
+	t.ok(targetEl.hasAttribute('onclick'), 'Link has onclick')
 	t.equals(targetEl.href, otherInfo.unit.targetUrl, 'Link leads to the right URL')
 
 	const image = targetEl.firstChild
