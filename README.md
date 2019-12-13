@@ -31,11 +31,12 @@ Brief description of each one:
 * `acceptedStates`: array of accepted campaign states; defaults to `['Active', 'Ready']`
 * `minPerImpression`: minimum payment amount per impression; defaults to `'0'`
 * `minTargetingScore`: minimum targeting score to show an ad unit; defaults to `0`
-* `randomize`: apply random sort as a secondary sort if the targeting score is the same
 * `publisherAddr`: the address of the publisher that will receive the earnings
 * `whitelistedToken`: the address of the whitelisted payment token
 * `whitelistedType`: the allowed type of the ad unit; don't pass that in (or set to `null`) if you want to allow all types
 * `topByPrice`: how many ad units to consider after sorting by price
+* `topByScore`: how many ad units to consider after sorting by targeting
+* `randomize`: apply random sort on the final selection (after applying `topByPrice` and `topByScore`)
 * `targeting`: what targeting tags to apply
 
 For detailed information on how the bidding process works, see: https://github.com/AdExNetwork/adex-protocol/blob/master/components/validator-stack.md#bidding-process

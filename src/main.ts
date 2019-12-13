@@ -110,12 +110,12 @@ export function normalizeUrl(url: string): string {
 	return url
 }
 
-function imageHtml({ evBody, onLoadCode, size, imgUrl }): string {
-	return `<img src="${imgUrl}" data-event-body='${evBody}' alt="AdEx ad" rel="nofollow" onload="${onLoadCode}" ${size}>`
+function imageHtml({ onLoadCode, size, imgUrl }): string {
+	return `<img src="${imgUrl}" alt="AdEx ad" rel="nofollow" onload="${onLoadCode}" ${size}>`
 }
 
-function videoHtml({ evBody, onLoadCode, size, imgUrl, mediaMime }): string {
-	return `<video ${size} loop autoplay data-event-body='${evBody}' onloadeddata="${onLoadCode}" muted>` +
+function videoHtml({ onLoadCode, size, imgUrl, mediaMime }): string {
+	return `<video ${size} loop autoplay onloadeddata="${onLoadCode}" muted>` +
 		`<source src="${imgUrl}" type="${mediaMime}">` +
 		`</video>`
 }
@@ -143,32 +143,31 @@ function isVideo(unit: any): boolean {
 	return (unit.mediaMime || '').split('/')[0] === 'video'
 }
 
-function getUnitHTML({ width, height }: AdViewManagerOptions, { unit, evBody = '', onLoadCode = '' }): string {
+function getUnitHTML({ width, height }: AdViewManagerOptions, { unit, onLoadCode = '', onClickCode = '' }): string {
 	const imgUrl = normalizeUrl(unit.mediaUrl)
 	const size = width && height ? `width="${width}" height="${height}" ` : ''
 	return `<div
 			style="position: relative; overflow: hidden; ${size ? `width: ${width}px; height: ${height}px;` : ''}"
 		>`
-		+ `<a href="${unit.targetUrl}" target="_blank" rel="noopener noreferrer">`
+		+ `<a href="${unit.targetUrl}" target="_blank" onclick="${onClickCode}" rel="noopener noreferrer">`
 		+ (isVideo(unit)
-			? videoHtml({ evBody, onLoadCode, size, imgUrl, mediaMime: unit.mediaMime })
-			: imageHtml({ evBody, onLoadCode, size, imgUrl }))
+			? videoHtml({ onLoadCode, size, imgUrl, mediaMime: unit.mediaMime })
+			: imageHtml({ onLoadCode, size, imgUrl }))
 		+ `</a>`
 		+ adexIcon()
 		+ `</div>`
 }
 
 export function getHTML(options: AdViewManagerOptions, { unit, channelId, validators }): string {
-	const evBody = JSON.stringify({ events: [{ type: 'IMPRESSION', publisher: options.publisherAddr, adUnit: unit.ipfs }] })
-	const onLoadCode = validators
+	const getBody = (evType) => `JSON.stringify({ events: [{ type: '${evType}', publisher: '${options.publisherAddr}', adUnit: '${unit.ipfs}' }] })`
+	const getCode = (evType) => `var fetchOpts = { method: 'POST', headers: { 'content-type': 'application/json' }, body: ${getBody(evType)} };` + validators
 		.map(({ url }) => {
-			const fetchOpts = `{ method: 'POST', headers: { 'content-type': 'application/json' }, body: this.dataset.eventBody }`
 			const fetchUrl = `${url}/channel/${channelId}/events`
-			return `fetch('${fetchUrl}', ${fetchOpts})`
+			return `fetch('${fetchUrl}',fetchOpts)`
 		})
 		.join(';')
 
-	return getUnitHTML(options, { unit, evBody, onLoadCode })
+	return getUnitHTML(options, { unit, onLoadCode: getCode('IMPRESSION'), onClickCode: getCode('CLICK') })
 }
 
 export class AdViewManager {
