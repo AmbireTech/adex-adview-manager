@@ -201,9 +201,11 @@ export class AdViewManager {
 							return {}
 						}
 					})
-				// This object is a mapping of tokenAddr->value, so this is a hack right now
-				// @TODO fix it
-				const resMinPerImpression: any = Object.values(resSlot.minPerImpression || {})[0]
+				// If this is an object, it is a mapping of tokenAddr->value, but since a slot always uses tokens
+				// of the same price/decimals, all values should be the same
+				const resMinPerImpression: any = typeof resSlot.minPerImpression === 'string'
+					? resSlot.minPerImpression
+					: Object.values(resSlot.minPerImpression || {})[0]
 				const optsOverride = {
 					fallbackUnit: resSlot.fallbackUnit || opts.fallbackUnit,
 					minPerImpression: resMinPerImpression || opts.minPerImpression,
