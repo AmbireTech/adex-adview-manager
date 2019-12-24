@@ -7,6 +7,8 @@ const defaultOpts = {
 	acceptedStates: ['Active', 'Ready'],
 	minPerImpression: '1',
 	minTargetingScore: 0,
+	// SAI and DAI
+	whitelistedTokens: ['0x89d24A6b4CcB1B6fAA2625fE562bDD9a23260359', '0x6B175474E89094C44Da98b954EedeAC495271d0F'],
 	topByPrice: 10,
 	topByScore: 5,
 	randomize: true,
@@ -28,7 +30,9 @@ interface AdViewManagerOptions {
 	randomize: boolean,
 	// Must be passed (except the ones with ?)
 	publisherAddr: string,
-	whitelistedToken: string,
+	// All passed tokens must be of the same price and decimals, so that the amounts can be accurately compared
+	// e.g. SAI and DAI
+	whitelistedTokens?: Array<string>,
 	whitelistedType?: string,
 	topByPrice?: number,
 	topByScore?: number,
@@ -55,7 +59,7 @@ export function applySelection(campaigns: Array<any>, options: AdViewManagerOpti
 		return options.acceptedStates.includes(campaign.status.name)
 			&& (campaign.spec.activeFrom || 0) < Date.now()
 			&& Array.isArray(campaign.spec.adUnits)
-			&& campaign.depositAsset === options.whitelistedToken
+			&& options.whitelistedTokens.includes(campaign.depositAsset)
 			&& new BN(campaign.spec.minPerImpression)
 				.gte(new BN(options.minPerImpression))
 	})
@@ -197,7 +201,11 @@ export class AdViewManager {
 							return {}
 						}
 					})
-				const resMinPerImpression = (resSlot.minPerImpression || {})[opts.whitelistedToken]
+				// If this is an object, it is a mapping of tokenAddr->value, but since a slot always uses tokens
+				// of the same price/decimals, all values should be the same
+				const resMinPerImpression: any = typeof resSlot.minPerImpression === 'string'
+					? resSlot.minPerImpression
+					: Object.values(resSlot.minPerImpression || {})[0]
 				const optsOverride = {
 					fallbackUnit: resSlot.fallbackUnit || opts.fallbackUnit,
 					minPerImpression: resMinPerImpression || opts.minPerImpression,

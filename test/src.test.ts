@@ -78,7 +78,7 @@ const options = {
 	minPerImpression: new BN(1),
 	minTargetingScore: 0,
 	randomize: true,
-	whitelistedToken
+	whitelistedTokens: [whitelistedToken],
 }
 
 const optionsWithTopByPrice = {
