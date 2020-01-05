@@ -163,7 +163,7 @@ function getUnitHTML({ width, height }: AdViewManagerOptions, { unit, onLoadCode
 }
 
 export function getHTML(options: AdViewManagerOptions, { unit, channelId, validators }): string {
-	const getBody = (evType) => `JSON.stringify({ events: [{ type: '${evType}', publisher: '${options.publisherAddr}', adUnit: '${unit.ipfs}' }] })`
+	const getBody = (evType) => `JSON.stringify({ events: [{ type: '${evType}', publisher: '${options.publisherAddr}', adUnit: '${unit.ipfs}', ref: document.referrer }] })`
 	const getCode = (evType) => `var fetchOpts = { method: 'POST', headers: { 'content-type': 'application/json' }, body: ${getBody(evType)} };` + validators
 		.map(({ url }) => {
 			const fetchUrl = `${url}/channel/${channelId}/events`
