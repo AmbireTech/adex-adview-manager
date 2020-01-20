@@ -14,7 +14,7 @@ const ineligibleCampaign1 = {
 	spec: {
 		activeFrom: 0,
 		adUnits: [],
-		minPerImpression: new BN(2)
+		minPerImpression: new BN('20000000000000')
 	}
 }
 
@@ -27,7 +27,7 @@ const ineligibleCampaign2 = {
 	spec: {
 		activeFrom: 0,
 		adUnits: [],
-		minPerImpression: new BN(2)
+		minPerImpression: new BN('20000000000000')
 	}
 }
 
@@ -40,7 +40,7 @@ const ineligibleCampaign3 = {
 	spec: {
 		activeFrom: Date.now() + 100000,
 		adUnits: [],
-		minPerImpression: new BN(2)
+		minPerImpression: new BN('20000000000000')
 	}
 }
 
@@ -52,7 +52,7 @@ const ineligibleCampaign4 = {
 	},
 	spec: {
 		activeFrom: 0,
-		minPerImpression: new BN(2)
+		minPerImpression: new BN('20000000000000')
 	}
 }
 
@@ -65,7 +65,7 @@ const ineligibleCampaign5 = {
 	spec: {
 		activeFrom: 0,
 		adUnits: [],
-		minPerImpression: new BN(0)
+		minPerImpression: new BN('20000000000000')
 	}
 }
 
@@ -137,7 +137,7 @@ function getCampaignWithUnits(adUnits: Array<any>) {
 		spec: {
 			activeFrom: 0,
 			adUnits,
-			minPerImpression: new BN(2),
+			minPerImpression: new BN('20000000000000'),
 			validators: [
 				{
 					id : '0x2892f6C41E0718eeeDd49D98D648C789668cA67d',
@@ -256,17 +256,18 @@ test('Apply Selection tests', (t) => {
 	t.deepEquals(applySelection([], options), [], 'No campaigns returns empty array')
 	t.deepEquals(applySelection([ineligibleCampaign1, ineligibleCampaign2, ineligibleCampaign3, ineligibleCampaign4, ineligibleCampaign5], options), [], 'None of these campaigns is eligible, so none are returned')
 
-	const campaign1 = getCampaignWithUnits([unit1]) // BN(2)
+	const campaign1 = getCampaignWithUnits([unit1])
+	campaign1.spec.minPerImpression = new BN('21000000000000')
 	const campaign2 = getCampaignWithUnits([unit2])
-	campaign2.spec.minPerImpression = new BN(3)
+	campaign2.spec.minPerImpression = new BN('30000000000000')
 	const campaign3 = getCampaignWithUnits([unit3])
-	campaign3.spec.minPerImpression = new BN(1)
+	campaign3.spec.minPerImpression = new BN('20000000000000')
 	const testCampaigns = [campaign1, campaign2, campaign3]
 	const sortedUnits = applySelection(testCampaigns, options)
 
-	t.deepEquals(sortedUnits[0].minPerImpression, new BN(3), 'First campaign is with highest minPerImpression')
-	t.deepEquals(sortedUnits[1].minPerImpression, new BN(2), 'First campaign is with second highest minPerImpression')
-	t.deepEquals(sortedUnits[2].minPerImpression, new BN(1), 'First campaign is with lowest minPerImpression')
+	t.deepEquals(sortedUnits[0].minPerImpression, new BN('30000000000000'), 'First campaign is with highest minPerImpression')
+	t.deepEquals(sortedUnits[1].minPerImpression, new BN('21000000000000'), 'First campaign is with second highest minPerImpression')
+	t.deepEquals(sortedUnits[2].minPerImpression, new BN('20000000000000'), 'First campaign is with lowest minPerImpression')
 	t.equals(sortedUnits[0].channelId, campaign2.id, 'Unit object has channelId property and it is equal to campaign ID')
 	t.deepEquals(sortedUnits[0].validators, campaign2.spec.validators, 'Unit object has property equal to the campaign validators')
 	t.equals(sortedUnits[0].minTargetingScore, campaign2.spec.minTargetingScore, 'Unit object has minTargetScore property from campaign')
@@ -275,7 +276,7 @@ test('Apply Selection tests', (t) => {
 	const toppedByPrice = applySelection(testCampaigns, optionsWithTopByPrice)
 
 	t.equals(toppedByPrice.length, optionsWithTopByPrice.topByPrice, 'Successfully limits by topByPrice')
-	t.deepEquals(toppedByPrice[0].minPerImpression, new BN(3), 'First element is correct')
+	t.deepEquals(toppedByPrice[0].minPerImpression, new BN('30000000000000'), 'First element is correct')
 
 	const filteredByType = applySelection(testCampaigns, optionsWithTypeLimit)
 	t.equals(filteredByType.length, 2, 'Filtered the right amount of elements')
