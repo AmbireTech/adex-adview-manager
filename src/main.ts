@@ -1,6 +1,7 @@
 import { BN } from 'bn.js'
 
 export const IPFS_GATEWAY = 'https://ipfs.moonicorn.network/ipfs/'
+export const GLOBAL_MIN_PER_IMPRESSION = new BN('20000000000000')
 
 const defaultOpts = {
 	marketURL: 'https://market.moonicorn.network',
@@ -56,12 +57,13 @@ export function calculateTargetScore(a: Array<TargetTag>, b: Array<TargetTag>): 
 
 export function applySelection(campaigns: Array<any>, options: AdViewManagerOptions): Array<any> {
 	const eligible = campaigns.filter(campaign => {
+		const minPerImpression = new BN(campaign.spec.minPerImpression)
 		return options.acceptedStates.includes(campaign.status.name)
 			&& (campaign.spec.activeFrom || 0) < Date.now()
 			&& Array.isArray(campaign.spec.adUnits)
 			&& options.whitelistedTokens.includes(campaign.depositAsset)
-			&& new BN(campaign.spec.minPerImpression)
-				.gte(new BN(options.minPerImpression))
+			&& minPerImpression.gte(new BN(options.minPerImpression))
+			&& minPerImpression.gte(GLOBAL_MIN_PER_IMPRESSION)
 	})
 
 	// Map them to units, flatten
