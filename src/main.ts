@@ -10,8 +10,8 @@ const defaultOpts = {
 	minTargetingScore: 0,
 	// SAI and DAI
 	whitelistedTokens: ['0x89d24A6b4CcB1B6fAA2625fE562bDD9a23260359', '0x6B175474E89094C44Da98b954EedeAC495271d0F'],
-	topByPrice: 10,
-	topByScore: 5,
+	topByScore: 12,
+	topByPrice: 6,
 	randomize: true,
 	disableVideo: false,
 }
@@ -86,14 +86,7 @@ export function applySelection(campaigns: Array<any>, options: AdViewManagerOpti
 		)
 		: units
 
-	const unitsByPrice = unitsFiltered
-		.sort((b, a) => new BN(a.minPerImpression).cmp(new BN(b.minPerImpression)))
-
-	const unitsTop = options.topByPrice
-		? unitsByPrice.slice(0, options.topByPrice)
-		: unitsByPrice
-
-	const unitsByScore = unitsTop
+	const unitsByScore = unitsFiltered
 		.map(x => ({
 			...x,
 			targetingScore: calculateTargetScore(x.unit.targeting, options.targeting || []),
@@ -104,11 +97,19 @@ export function applySelection(campaigns: Array<any>, options: AdViewManagerOpti
 		)
 		.sort((a, b) => b.targetingScore - a.targetingScore)
 
-	const unitsTopByScore = options.topByScore
+	const unitsTop = options.topByScore
 		? unitsByScore.slice(0, options.topByScore)
 		: unitsByScore
 
-	return unitsTopByScore
+	const unitsByPrice = unitsTop
+		.sort((b, a) => new BN(a.minPerImpression).cmp(new BN(b.minPerImpression)))
+
+	const unitsTopByPrice = options.topByPrice
+		? unitsByPrice.slice(0, options.topByPrice)
+		: unitsByPrice
+
+	return unitsTopByPrice
+		.sort((a, b) => b.targetingScore - a.targetingScore)
 }
 
 export function normalizeUrl(url: string): string {
