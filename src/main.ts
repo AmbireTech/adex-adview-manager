@@ -225,8 +225,9 @@ export class AdViewManager {
 	async getAdUnits(): Promise<any> {
 		const states = `status=${this.options.acceptedStates.join(',')}`
 		const publisherLimit = `limitForPublisher=${this.options.publisherAddr}`
-		const url = `${this.options.marketURL}/campaigns?${states}&${publisherLimit}`
-		const campaigns = await this.fetch(url).then(r => r.json())
+		const url = `${this.options.marketURL}/campaigns/with-targeting?${states}&${publisherLimit}`
+		const { campaigns, targeting } = await this.fetch(url).then(r => r.json())
+		this.options.targeting = this.options.targeting.concat(targeting)
 		return applySelection(campaigns, this.options)
 	}
 	async getFallbackUnit(): Promise<any> {
