@@ -47,7 +47,7 @@ interface AdViewManagerOptions {
 
 export function calculateTargetScore(a: Array<TargetTag>, b: Array<TargetTag>): number {
 	return a.map(x => {
-		const match = b.find(y => y.tag === x.tag)
+		const match = b.find(y => y.tag === x.tag && y.score)
 		if (match) {
 			return x.score * match.score
 		}
