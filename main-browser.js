@@ -1,6 +1,23 @@
 const { AdViewManager, normalizeUrl } = require('./lib/main')
 
 function initWithOptions(options) {
+	function collapse() {
+		// Collapse the space
+		window.parent.postMessage({ adexHeight: 0 }, "*")
+	}
+
+	// limiting to 2 recent
+	const RECENT = 10000
+	const now = Date.now()
+	let views = JSON.parse(localStorage.views || '[]')
+	views = views.filter(x => now-x < RECENT)
+	if (views.length >= 2) {
+		collapse()
+		return
+	}
+	views.push(now)
+	localStorage.views = JSON.stringify(views)
+
 	// emergency fix
 	if (options.publisher) options.publisherAddr = options.publisher;
 	// end of emergency fix
@@ -23,9 +40,7 @@ function initWithOptions(options) {
 		}
 	}).catch(e => {
 		console.error(e)
-		// Collapse the space
-		const m = { adexHeight: 0 }
-		window.parent.postMessage(m, "*")
+		collapse()
 	})
 	document.body.style = 'margin: 0px;'
 }
