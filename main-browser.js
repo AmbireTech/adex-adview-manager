@@ -6,12 +6,13 @@ function initWithOptions(options) {
 		window.parent.postMessage({ adexHeight: 0 }, "*")
 	}
 
-	// limiting to 2 recent
-	const RECENT = 10000
+	// limiting to 2 per last 10 seconds
+	const RECENT_TIME = 10000
+	const RECENT_LIMIT = 2
 	const now = Date.now()
 	let views = JSON.parse(localStorage.views || '[]')
-	views = views.filter(x => now-x < RECENT)
-	if (views.length >= 2) {
+	views = views.filter(x => now-x < RECENT_TIME)
+	if (views.length >= RECENT_LIMIT) {
 		collapse()
 		return
 	}
