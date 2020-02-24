@@ -21,6 +21,11 @@ function initWithOptions(options) {
 			const m = { adexHeight: height }
 			window.parent.postMessage(m, "*")
 		}
+	}).catch(e => {
+		console.error(e)
+		// Collapse the space
+		const m = { adexHeight: 0 }
+		window.parent.postMessage(m, "*")
 	})
 	document.body.style = 'margin: 0px;'
 }
