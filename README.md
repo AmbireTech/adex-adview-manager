@@ -1,6 +1,13 @@
 # adex-adview-manager
 
-Manager class for AdEx adviews
+Manager class for AdEx AdViews.
+
+This library is meant to be integrated by publishers on their websites, runs on the client side (user's browser) and facilitates the following functionalities:
+
+1. Pulling ad demand (campaigns) and applying targeting and filtering according to the criteria set by the advertisers and the involved publisher
+2. Showing the ad creative to the user
+3. Counting events and sending them to the validators; events are impressions (as defined by [IAB guideline](https://www.iab.com/wp-content/uploads/2015/06/Ad-Impression-Measurment-Guideline-US.pdf)) and clicks
+
 
 Usage:
 
@@ -16,6 +23,8 @@ async function run() {
 }
 run()
 ```
+
+**NOTE:** If you're a publisher, you do not need to integrate this library directly. All you need to do is copy/paste the HTML snippet from the Platform once you create an ad slot.
 
 ### Constructor:
 
