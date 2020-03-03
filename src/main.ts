@@ -3,6 +3,10 @@ import { BN } from 'bn.js'
 export const IPFS_GATEWAY = 'https://ipfs.moonicorn.network/ipfs/'
 export const GLOBAL_MIN_PER_IMPRESSION = new BN('20000000000000')
 
+// How much time to wait before sending out an impression event
+// Related: https://github.com/AdExNetwork/adex-adview-manager/issues/17, https://github.com/AdExNetwork/adex-adview-manager/issues/35, https://github.com/AdExNetwork/adex-adview-manager/issues/46
+const WAIT_FOR_IMPRESSION = 15000
+
 const defaultOpts = {
 	marketURL: 'https://market.moonicorn.network',
 	acceptedStates: ['Active', 'Ready'],
@@ -168,12 +172,13 @@ function getUnitHTML({ width, height }: AdViewManagerOptions, { unit, onLoadCode
 export function getHTML(options: AdViewManagerOptions, { unit, channelId, validators }): string {
 	const adSlotCode = options.marketSlot ? `, adSlot: '${options.marketSlot}'` : ''
 	const getBody = (evType) => `JSON.stringify({ events: [{ type: '${evType}', publisher: '${options.publisherAddr}', adUnit: '${unit.ipfs}', ref: document.referrer${adSlotCode} }] })`
-	const getCode = (evType) => `var fetchOpts = { method: 'POST', headers: { 'content-type': 'application/json' }, body: ${getBody(evType)} };` + validators
+	const getFetchCode = (evType) => `var fetchOpts = { method: 'POST', headers: { 'content-type': 'application/json' }, body: ${getBody(evType)} };` + validators
 		.map(({ url }) => {
 			const fetchUrl = `${url}/channel/${channelId}/events`
 			return `fetch('${fetchUrl}',fetchOpts)`
 		})
 		.join(';')
+	const getCode = (evType) => `setTimeout(function() {${getFetchCode(evType)}}, ${WAIT_FOR_IMPRESSION})`
 
 	return getUnitHTML(options, { unit, onLoadCode: getCode('IMPRESSION'), onClickCode: getCode('CLICK') })
 }
