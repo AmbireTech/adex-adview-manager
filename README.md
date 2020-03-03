@@ -9,6 +9,8 @@ This library is meant to be integrated by publishers on their websites, runs on 
 3. Counting events and sending them to the validators; events are impressions (as defined by [IAB guideline](https://www.iab.com/wp-content/uploads/2015/06/Ad-Impression-Measurment-Guideline-US.pdf)) and clicks
 
 
+**NOTE:** If you're a publisher, you do not need to integrate this library directly. All you need to do is copy/paste the HTML snippet from the Platform once you create an ad slot.
+
 Usage:
 
 ```javascript
@@ -24,8 +26,6 @@ async function run() {
 run()
 ```
 
-**NOTE:** If you're a publisher, you do not need to integrate this library directly. All you need to do is copy/paste the HTML snippet from the Platform once you create an ad slot.
-
 ### Constructor:
 
 `const mgr = new AdViewManager(fetch, opts)`
@@ -36,7 +36,7 @@ For the available options, see https://github.com/AdExNetwork/adex-adview-manage
 
 Brief description of each one:
 
-* `marketURL`: URL to the AdEx market; defaults to `"https://market.adex.network"`
+* `marketURL`: URL to the AdEx market; defaults to `"https://market.moonicorn.network"`
 * `acceptedStates`: array of accepted campaign states; defaults to `['Active', 'Ready']`
 * `minPerImpression`: minimum payment amount per impression; defaults to `'0'`
 * `minTargetingScore`: minimum targeting score to show an ad unit; defaults to `0`
