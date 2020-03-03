@@ -6,8 +6,8 @@ function initWithOptions(options) {
 		window.parent.postMessage({ adexHeight: 0 }, "*")
 	}
 
-	// limiting to 2 per last 5 seconds
-	const RECENT_TIME = 5000
+	// limiting to 2 per last 10 seconds
+	const RECENT_TIME = 10000
 	const RECENT_LIMIT = 2
 	const now = Date.now()
 	let views = JSON.parse(localStorage.views || '[]')
