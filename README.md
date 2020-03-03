@@ -6,7 +6,7 @@ This library is meant to be integrated by publishers on their websites, runs on 
 
 1. Pulling ad demand (campaigns) and applying targeting and filtering according to the criteria set by the advertisers and the involved publisher
 2. Showing the ad creative to the user
-3. Counting events and sending them to the validators; events are impressions (as defined by [IAB guideline](https://www.iab.com/wp-content/uploads/2015/06/Ad-Impression-Measurment-Guideline-US.pdf)) and clicks
+3. Counting events and sending them to the validators; events are impressions (as defined by [IAB guidelines](https://www.iab.com/wp-content/uploads/2015/06/Ad-Impression-Measurment-Guideline-US.pdf)) and clicks
 
 
 **NOTE:** If you're a publisher, you do not need to integrate this library directly. All you need to do is copy/paste the HTML snippet from the Platform once you create an ad slot.
