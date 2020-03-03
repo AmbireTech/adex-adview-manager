@@ -118,7 +118,7 @@ export function normalizeUrl(url: string): string {
 }
 
 function imageHtml({ onLoadCode, size, imgUrl }): string {
-	return `<img src="${imgUrl}" alt="AdEx ad" rel="nofollow" onload="${onLoadCode}" ${size}>`
+	return `<img loading="lazy" src="${imgUrl}" alt="AdEx ad" rel="nofollow" onload="${onLoadCode}" ${size}>`
 }
 
 function videoHtml({ onLoadCode, size, imgUrl, mediaMime }): string {
