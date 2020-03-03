@@ -178,9 +178,9 @@ export function getHTML(options: AdViewManagerOptions, { unit, channelId, valida
 			return `fetch('${fetchUrl}',fetchOpts)`
 		})
 		.join(';')
-	const getCode = (evType) => `setTimeout(function() {${getFetchCode(evType)}}, ${WAIT_FOR_IMPRESSION})`
+	const getTimeoutCode = (evType) => `setTimeout(function() {${getFetchCode(evType)}}, ${WAIT_FOR_IMPRESSION})`
 
-	return getUnitHTML(options, { unit, onLoadCode: getCode('IMPRESSION'), onClickCode: getCode('CLICK') })
+	return getUnitHTML(options, { unit, onLoadCode: getTimeoutCode('IMPRESSION'), onClickCode: getFetchCode('CLICK') })
 }
 
 export class AdViewManager {
