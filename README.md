@@ -4,7 +4,7 @@ Manager class for AdEx AdViews.
 
 This library is meant to be integrated by publishers on their websites, runs on the client side (user's browser) and facilitates the following functionalities:
 
-1. Pulling ad demand (campaigns) and applying targeting and filtering according to the criteria set by the advertisers and the involved publisher
+1. Pulling ad demand (campaigns) and applying targeting, header bidding and filtering according to the criteria set by the advertisers and the involved publisher
 2. Showing the ad creative to the user
 3. Counting events and sending them to the validators; for example, impressions (as defined by [IAB guidelines](https://www.iab.com/wp-content/uploads/2015/06/Ad-Impression-Measurment-Guideline-US.pdf)) and clicks
 
