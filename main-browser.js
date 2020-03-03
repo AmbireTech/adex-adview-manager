@@ -6,6 +6,12 @@ function initWithOptions(options) {
 		window.parent.postMessage({ adexHeight: 0 }, "*")
 	}
 
+	// basic headless detection
+	if (navigator.webdriver || !(Array.isArray(navigator.languages) && navigator.languages.length)) {
+		collapse()
+		return
+	}
+
 	// limiting to 2 per last 10 seconds
 	const RECENT_TIME = 10000
 	const RECENT_LIMIT = 2
