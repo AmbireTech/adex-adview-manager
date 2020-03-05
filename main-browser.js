@@ -19,6 +19,7 @@ function initWithOptions(options) {
 	let views = JSON.parse(localStorage.views || '[]')
 	views = views.filter(x => now-x < RECENT_TIME)
 	if (views.length >= RECENT_LIMIT) {
+		console.log('AdEx: ads per page limit exceeded')
 		collapse()
 		return
 	}
@@ -39,6 +40,9 @@ function initWithOptions(options) {
 	mgr.getNextAdUnit().then(u => {
 		if (u) {
 			document.body.innerHTML = u.html
+		}
+		if (!u) {
+			console.log(`AdEx: no ad demand for slot (${options.type})`)
 		}
 		if (window.parent) {
 			const height = u ? options.height : 0
