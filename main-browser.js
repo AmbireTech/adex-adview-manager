@@ -38,10 +38,17 @@ function initWithOptions(options) {
 	}
 	const mgr = new AdViewManager((url, o) => fetch(url, o), options)
 	mgr.getNextAdUnit().then(u => {
+		if (Array.isArray(mgr.options.acceptedReferrers)
+			&& document.referrer
+			&& !mgr.options.acceptedReferrers.some(ref => document.referrer.startsWith(ref))
+		) {
+			console.log(`AdEx: ad slot installed on wrong website (referrer)`)
+			collapse()
+			return
+		}
 		if (u) {
 			document.body.innerHTML = u.html
-		}
-		if (!u) {
+		} else {
 			console.log(`AdEx: no ad demand for slot (${options.type})`)
 		}
 		if (window.parent) {

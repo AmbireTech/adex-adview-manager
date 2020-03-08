@@ -46,7 +46,9 @@ interface AdViewManagerOptions {
 	height?: number,
 	fallbackUnit?: string,
 	disableVideo?: boolean,
-	marketSlot?: string
+	marketSlot?: string,
+	// Which referrer prefixes are ok
+	acceptedReferrers?: Array<string>,
 }
 
 export function calculateTargetScore(a: Array<TargetTag>, b: Array<TargetTag>): number {
@@ -202,24 +204,25 @@ export class AdViewManager {
 
 		if (!this.optsLoaded && opts.marketSlot) {
 				const url = `${opts.marketURL}/slots/${opts.marketSlot}`
-				const resSlot = await this.fetch(url)
+				const { slot, acceptedReferrers } = await this.fetch(url)
 					.then(r => {
 						if(r.status >= 200 && r.status < 400){
-							return r.json().then(res => res.slot)
+							return r.json()
 						} else {
 							return {}
 						}
 					})
 				// If this is an object, it is a mapping of tokenAddr->value, but since a slot always uses tokens
 				// of the same price/decimals, all values should be the same
-				const resMinPerImpression: any = typeof resSlot.minPerImpression === 'string'
-					? resSlot.minPerImpression
-					: Object.values(resSlot.minPerImpression || {})[0]
+				const resMinPerImpression: any = typeof slot.minPerImpression === 'string'
+					? slot.minPerImpression
+					: Object.values(slot.minPerImpression || {})[0]
 				const optsOverride = {
-					fallbackUnit: resSlot.fallbackUnit || opts.fallbackUnit,
+					fallbackUnit: slot.fallbackUnit || opts.fallbackUnit,
 					minPerImpression: resMinPerImpression || opts.minPerImpression,
-					minTargetingScore: resSlot.minTargetingScore || opts.minTargetingScore,
-					targeting: resSlot.tags || opts.targeting
+					minTargetingScore: slot.minTargetingScore || opts.minTargetingScore,
+					targeting: slot.tags || opts.targeting,
+					acceptedReferrers: acceptedReferrers || opts.acceptedReferrers
 				}
 
 				this.options = { ...opts, ...optsOverride }
