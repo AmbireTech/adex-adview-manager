@@ -5,7 +5,7 @@ export const GLOBAL_MIN_PER_IMPRESSION = new BN('20000000000000')
 
 // How much time to wait before sending out an impression event
 // Related: https://github.com/AdExNetwork/adex-adview-manager/issues/17, https://github.com/AdExNetwork/adex-adview-manager/issues/35, https://github.com/AdExNetwork/adex-adview-manager/issues/46
-const WAIT_FOR_IMPRESSION = 5000
+const WAIT_FOR_IMPRESSION = 8000
 
 const defaultOpts = {
 	marketURL: 'https://market.moonicorn.network',
