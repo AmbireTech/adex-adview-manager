@@ -49,7 +49,7 @@ function initWithOptions(options) {
 		if (u) {
 			document.body.innerHTML = u.html
 		} else {
-			console.log(`AdEx: no ad demand for slot (${options.type})`)
+			console.log(`AdEx: no ad demand for slot (${options.whitelistedType})`)
 		}
 		if (window.parent) {
 			const height = u ? options.height : 0
