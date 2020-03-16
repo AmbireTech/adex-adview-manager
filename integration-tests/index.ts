@@ -1,4 +1,4 @@
-import { AdViewManager } from '../../src/main'
+import { AdViewManager } from '../src/main'
 import { BN } from 'bn.js'
 
 const tape = require('tape')

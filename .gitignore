@@ -1,4 +1,4 @@
 node_modules
 dist.browser
 lib
-test/integration/index.js
+integration/index.js
