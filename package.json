@@ -5,6 +5,7 @@
   "main": "lib/main.js",
   "scripts": {
     "test": "ts-node node_modules/tape/bin/tape test/**/*.ts",
+    "integration-test": "ts-node node_modules/tape/bin/tape test/integration/index.ts",
     "prepublish": "tsc",
     "build": "tsc && time webpack --mode production",
     "start": "tsc && time webpack --mode production && http-server --cors dist.browser",
@@ -37,6 +38,7 @@
     "html-webpack-plugin": "^4.0.0-beta.5",
     "jsdom": "^15.1.1",
     "node-fetch": "^2.3.0",
+    "puppeteer": "^2.1.1",
     "tape": "^4.11.0",
     "ts-node": "^8.3.0",
     "typescript": "^3.5.3",
