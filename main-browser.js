@@ -40,6 +40,7 @@ function initWithOptions(options) {
 	mgr.getNextAdUnit().then(u => {
 		if (Array.isArray(mgr.options.acceptedReferrers)
 			&& document.referrer
+			&& !document.referrer.startsWith('https://localhost:8080')
 			&& !mgr.options.acceptedReferrers.some(ref => document.referrer.startsWith(ref))
 		) {
 			console.log(`AdEx: ad slot installed on wrong website (referrer)`)
