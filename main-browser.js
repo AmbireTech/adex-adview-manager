@@ -43,8 +43,13 @@ function initWithOptions(options) {
 			&& !document.referrer.startsWith('https://localhost:8080')
 			&& !mgr.options.acceptedReferrers.some(ref => document.referrer.startsWith(ref))
 		) {
-			console.log(`AdEx: ad slot installed on wrong website (referrer)`)
-			collapse()
+			// @TODO: more correct detection
+			if (document.referrer.includes('/localhost') && options.whitelistedType === 'legacy_300x250') {
+				document.body.innerHTML = `<img src="/dev-banners/300x250.jpg" alt="AdEx development banner" width="300" height="250">`
+			} else {
+				console.log(`AdEx: ad slot installed on wrong website (referrer)`)
+				collapse()
+			}
 			return
 		}
 		if (u) {
