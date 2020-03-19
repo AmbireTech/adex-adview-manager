@@ -44,8 +44,10 @@ function initWithOptions(options) {
 			&& !mgr.options.acceptedReferrers.some(ref => document.referrer.startsWith(ref))
 		) {
 			// @TODO: more correct detection
-			if (document.referrer.includes('/localhost') && options.whitelistedType === 'legacy_300x250') {
-				document.body.innerHTML = `<img src="/dev-banners/300x250.jpg" alt="AdEx development banner" width="300" height="250">`
+			if (document.referrer.includes('/localhost') && options.whitelistedType.startsWith('legacy_')) {
+				const size = options.whitelistedType.split('_')[1]
+				const sizeSplit = size.split('x')
+				document.body.innerHTML = `<img src="/dev-banners/${size}.jpg" alt="AdEx development banner" width="${sizeSplit[0]}" height="${sizeSplit[1]}">`
 			} else {
 				console.log(`AdEx: ad slot installed on wrong website (referrer)`)
 				collapse()
