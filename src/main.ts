@@ -176,7 +176,7 @@ export function getHTML(options: AdViewManagerOptions, { unit, channelId, valida
 	const getBody = (evType) => `JSON.stringify({ events: [{ type: '${evType}', publisher: '${options.publisherAddr}', adUnit: '${unit.ipfs}', ref: document.referrer${adSlotCode} }] })`
 	const getFetchCode = (evType) => `var fetchOpts = { method: 'POST', headers: { 'content-type': 'application/json' }, body: ${getBody(evType)} };` + validators
 		.map(({ url }) => {
-			const fetchUrl = `${url}/channel/${channelId}/events`
+			const fetchUrl = `${url}/channel/${channelId}/events?pubAddr=${options.publisherAddr}`
 			return `fetch('${fetchUrl}',fetchOpts)`
 		})
 		.join(';')
