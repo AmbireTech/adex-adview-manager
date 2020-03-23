@@ -40,10 +40,18 @@ function initWithOptions(options) {
 	mgr.getNextAdUnit().then(u => {
 		if (Array.isArray(mgr.options.acceptedReferrers)
 			&& document.referrer
+			&& !document.referrer.startsWith('https://localhost:8080')
 			&& !mgr.options.acceptedReferrers.some(ref => document.referrer.startsWith(ref))
 		) {
-			console.log(`AdEx: ad slot installed on wrong website (referrer)`)
-			collapse()
+			// @TODO: more correct detection
+			if (document.referrer.includes('/localhost') && options.whitelistedType.startsWith('legacy_')) {
+				const size = options.whitelistedType.split('_')[1]
+				const sizeSplit = size.split('x')
+				document.body.innerHTML = `<img src="/dev-banners/${size}.jpg" alt="AdEx development banner" width="${sizeSplit[0]}" height="${sizeSplit[1]}">`
+			} else {
+				console.log(`AdEx: ad slot installed on wrong website (referrer)`)
+				collapse()
+			}
 			return
 		}
 		if (u) {
