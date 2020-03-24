@@ -8,8 +8,8 @@
     "prepublish": "tsc",
     "build": "tsc && time webpack --mode production",
     "start": "tsc && time webpack --mode production && http-server --cors dist.browser",
-    "deploy-adex": "npm run build && cp -rf ./dev-banners ./domains/adex/CNAME ./dist.browser && mkdir -p dist.browser/.well-known && cp dnt-policy.txt dist.browser/.well-known && gh-pages -d dist.browser",
-    "deploy": "npm run build && cp -rf ./dev-banners ./domains/moonicorn/CNAME ./dist.browser && mkdir -p dist.browser/.well-known && cp dnt-policy.txt dist.browser/.well-known && gh-pages -d dist.browser -r git@github.com:AdExNetwork/adex-adview-manager-host.git"
+    "deploy-adex": "npm run build && cp -rf ./dev-banners ./domains/adex/CNAME ./dist.browser && mkdir -p dist.browser/.well-known && cp dnt-policy.txt dist.browser/.well-known && gh-pages --dotfiles -d dist.browser",
+    "deploy": "npm run build && cp -rf ./dev-banners ./domains/moonicorn/CNAME ./dist.browser && mkdir -p dist.browser/.well-known && cp dnt-policy.txt dist.browser/.well-known && gh-pages --dotfiles -d dist.browser -r git@github.com:AdExNetwork/adex-adview-manager-host.git"
   },
   "repository": {
     "type": "git",
