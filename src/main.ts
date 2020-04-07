@@ -70,6 +70,7 @@ export function applySelection(campaigns: Array<any>, options: AdViewManagerOpti
 			&& options.whitelistedTokens.includes(campaign.depositAsset)
 			&& minPerImpression.gte(new BN(options.minPerImpression))
 			&& minPerImpression.gte(GLOBAL_MIN_PER_IMPRESSION)
+			&& campaign.creator !== options.publisherAddr
 	})
 
 	// Map them to units, flatten
