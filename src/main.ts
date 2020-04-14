@@ -161,7 +161,7 @@ function getUnitHTML({ width, height }: AdViewManagerOptions, { unit, onLoadCode
 	const imgUrl = normalizeUrl(unit.mediaUrl)
 	const size = 'width=100%'
 	return `<div
-			style="position: relative; overflow: hidden; ${(width && height) ? `max-width: ${width}px; height: ${height}px;` : ''}"
+			style="position: relative; overflow: hidden; ${(width && height) ? `max-width: ${width}px; min-width: ${width/2}px; height: ${height}px;` : ''}"
 		>`
 		+ `<a href="${unit.targetUrl}" target="_blank" onclick="${onClickCode}" rel="noopener noreferrer">`
 		+ (isVideo(unit)
