@@ -199,6 +199,10 @@ test('Get HTML tests', (t) => {
 	el.innerHTML = resultHTML
 	const targetEl = el.firstChild.firstChild
 
+	t.ok(el.firstChild.hasAttribute('style'), 'Has style')
+	const { width, height } = options
+	t.equal(el.firstChild.getAttribute('style'), `position: relative; overflow: hidden; max-width: ${width}px; min-width: ${width/2}px; height: ${height}px;`, 'style is correct')
+
 	t.equals(targetEl.nodeName, 'A', 'Link is link')
 	t.ok(targetEl.hasAttribute('href'), 'Link leads to somewhere')
 	t.ok(targetEl.hasAttribute('onclick'), 'Link has onclick')
