@@ -26,6 +26,12 @@ function initWithOptions(options) {
 	views.push(now)
 	localStorage.views = JSON.stringify(views)
 
+	if (window.innerWidth < options.width / 2 || window.innerHeight < options.height / 2) {
+		console.log('AdEx: size too small')
+		collapse()
+		return
+	}
+
 	// emergency fix
 	if (options.publisher) options.publisherAddr = options.publisher;
 	// end of emergency fix
