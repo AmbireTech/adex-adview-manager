@@ -34,8 +34,12 @@ export function evaluate(input: any, output: any, rule: any) {
 		// @TODO assert rule.get is a string
 		return input.hasOwnProperty(rule.get) ? input[rule.get] : output[rule.get]
 	} else if (rule.set) {
-		output[rule.set[0]] = evalRule(rule.set[1])
-	// helpers; @TODO move
+		const key = assertType(rule.set[0], 'string')
+		// @TODO: separate error for trying to set undefined
+		const prevType = typeof output[key]
+		const value = evalRule(rule.set[1])
+		// @TODO type check
+		output[key] = assertType(value, prevType)
 	} else if (rule.onlyShowIf) {
 		if (!evalRule(rule.onlyShowIf)) output.show = false
 	// logic
@@ -58,6 +62,9 @@ export function evalMultiple(input: any, output: any, rules: any) {
 }
 
 function assertType(value: any, typeName: string): any {
+	// NOTE: we don't specify "array of <type>" cause we don't really need to validate the type of stuff in arrays
+	// plus, it's more expensive performance wise
+	if (Array.isArray(value) && typeName === 'array') return value
 	if (typeof value !== typeName) {
 		// @TODO: message?
 		throw {
