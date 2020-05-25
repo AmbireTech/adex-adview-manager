@@ -2,6 +2,8 @@ import { evaluate, evalMultiple } from '../src/rules'
 import * as test from 'tape'
 import { BN } from 'bn.js'
 
+const evalPure = x => evaluate({}, {}, x)
+
 console.log(evaluate({}, {}, { bn: '100000' }))
 console.log(evaluate({}, {}, { ifElse: [{endsWith: ['foo', 'oo']}, 'cool and good', 'not'] }))
 
@@ -10,3 +12,19 @@ console.log(evaluate({}, {}, { ifElse: [{endsWith: ['foo', 'oo']}, 'cool and goo
    { eq: [{ get: 'publisherId' }, '0xd5860D6196A4900bf46617cEf088ee6E6b61C9d6'] },
    { set: ['price.IMPRESSION', { mul: [1.5, { get: 'price.IMPRESSION' }] }] }
 ] }))*/
+
+
+// logic
+test('logic functions', t => {
+	t.equal(evalPure({ and: [true, true] }), true)
+	t.equal(evalPure({ and: [true, false] }), false)
+	t.equal(evalPure({ and: [false, false] }), false)
+	t.equal(evalPure({ or: [true, true] }), true)
+	t.equal(evalPure({ or: [true, false] }), true)
+	t.equal(evalPure({ or: [false, false] }), false)
+	t.equal(evalPure({ not: true }), false)
+	t.equal(evalPure({ not: false }), true)
+	t.end()
+})
+
+//test('logic functions: errors')

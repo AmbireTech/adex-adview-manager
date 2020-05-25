@@ -31,155 +31,155 @@ export function evaluate(input: any, output: any, rule: any) {
 	}
 
 	// flow control
-	if (rule.if) {
+	if (rule.hasOwnProperty('if')) {
 		assertArrayArgs(rule.if, 2)
 		const predicate = evalToBoolean(rule.if[0])
 		if (predicate) evalRule(rule.if[1])
-	} else if (rule.ifNot) {
+	} else if (rule.hasOwnProperty('ifNot')) {
 		assertArrayArgs(rule.ifNot, 2)
 		const predicate = evalToBoolean(rule.ifNot[0])
 		if (!predicate) evalRule(rule.ifNot[1])
-	} else if (rule.ifElse) {
+	} else if (rule.hasOwnProperty('ifElse')) {
 		assertArrayArgs(rule.ifElse, 3)
 		const predicate = evalToBoolean(rule.ifElse[0])
 		if (predicate) return evalRule(rule.ifElse[1])
 		else return evalRule(rule.ifElse[2])
-	} else if (rule.do) {
+	} else if (rule.hasOwnProperty('do')) {
 		return rule.do.map(evalRule)
 	// lists
 	// @TODO: document that the lists functions do not support BigNumbers within them
-	} else if (rule.in) {
+	} else if (rule.hasOwnProperty('in')) {
 		assertArrayArgs(rule.in, 2)
 		const a = evalToArray(rule.in[0])
 		const b = evalRule(rule.in[1])
 		return a.includes(b)
-	} else if (rule.nin) {
+	} else if (rule.hasOwnProperty('nin')) {
 		assertArrayArgs(rule.nin, 2)
 		const a = evalToArray(rule.nin[0])
 		const b = evalRule(rule.nin[1])
 		return !a.includes(b)
-	} else if (rule.intersects) {
+	} else if (rule.hasOwnProperty('intersects')) {
 		assertArrayArgs(rule.intersects, 2)
 		const a = evalToArray(rule.intersects[0])
 		const b = evalToArray(rule.intersects[1])
 		return a.some(x => b.includes(x))
-	} else if (rule.at) {
+	} else if (rule.hasOwnProperty('at')) {
 		assertArrayArgs(rule.at, 2)
 		const a = evalToArray(rule.at[0])
 		const idx = assertType(evalRule(rule.at[1]), 'number')
 		return a[idx]
 	// comparison
-	} else if (rule.eq) {
+	} else if (rule.hasOwnProperty('eq')) {
 		assertArrayArgs(rule.eq, 2)
 		const a = evalRule(rule.eq[0])
 		const b = evalRule(rule.eq[1])
 		if (a instanceof BN) return a.eq(new BN(b))
 		if (b instanceof BN) return b.eq(new BN(a))
 		return a === b
-	} else if (rule.lt) {
+	} else if (rule.hasOwnProperty('lt')) {
 		return evalWithNumbers(
 			rule.lt,
 			(a, b) => a < b,
 			(a, b) => a.lt(b)
 		)
-	} else if (rule.gt) {
+	} else if (rule.hasOwnProperty('gt')) {
 		return evalWithNumbers(
 			rule.gt,
 			(a, b) => a > b,
 			(a, b) => a.gt(b)
 		)
-	} else if (rule.gte) {
+	} else if (rule.hasOwnProperty('gte')) {
 		return evalWithNumbers(
 			rule.gte,
 			(a, b) => a >= b,
 			(a, b) => a.gte(b)
 		)
 	// logic
-	} else if (rule.not) {
+	} else if (rule.hasOwnProperty('not')) {
 		return !evalToBoolean(rule.not)
-	} else if (rule.or) {
+	} else if (rule.hasOwnProperty('or')) {
 		assertArrayArgs(rule.or, 2)
 		return evalToBoolean(rule.or[0]) || evalToBoolean(rule.or[1])
-	} else if (rule.and) {
+	} else if (rule.hasOwnProperty('and')) {
 		assertArrayArgs(rule.and, 2)
 		return evalToBoolean(rule.and[0]) && evalToBoolean(rule.and[1])
 	// math
-	} else if (rule.div) {
+	} else if (rule.hasOwnProperty('div')) {
 		return evalWithNumbers(
 			rule.div,
 			(a, b) => a / b,
 			(a, b) => a.div(b)
 		)
-	} else if (rule.mul) {
+	} else if (rule.hasOwnProperty('mul')) {
 		return evalWithNumbers(
 			rule.mul,
 			(a, b) => a * b,
 			(a, b) => a.mul(b)
 		)
-	} else if (rule.mod) {
+	} else if (rule.hasOwnProperty('mod')) {
 		return evalWithNumbers(
 			rule.mod,
 			(a, b) => a % b,
 			(a, b) => a.mod(b)
 		)
-	} else if (rule.add) {
+	} else if (rule.hasOwnProperty('add')) {
 		return evalWithNumbers(
 			rule.add,
 			(a, b) => a + b,
 			(a, b) => a.add(b)
 		)
-	} else if (rule.sub) {
+	} else if (rule.hasOwnProperty('sub')) {
 		return evalWithNumbers(
 			rule.sub,
 			(a, b) => a - b,
 			(a, b) => a.sub(b)
 		)
-	} else if (rule.max) {
+	} else if (rule.hasOwnProperty('max')) {
 		return evalWithNumbers(
 			rule.max,
 			(a, b) => Math.max(a, b),
 			(a, b) => BN.max(a, b)
 		)
-	} else if (rule.min) {
+	} else if (rule.hasOwnProperty('min')) {
 		return evalWithNumbers(
 			rule.min,
 			(a, b) => Math.min(a, b),
 			(a, b) => BN.min(a, b)
 		)
 	// construct a bn
-	} else if (rule.bn) {
+	} else if (rule.hasOwnProperty('bn')) {
 		// @TODO: should we allow evalRule here?
 		return new BN(assertType(evalRule(rule.bn), 'string'))
 	// strings
-	} else if (rule.split) {
+	} else if (rule.hasOwnProperty('split')) {
 		assertArrayArgs(rule.split, 2)
 		const a = evalToString(rule.split[0])
 		const b = evalToString(rule.split[1])
 		return a.split(b)
-	} else if (rule.endsWith) {
+	} else if (rule.hasOwnProperty('endsWith')) {
 		assertArrayArgs(rule.endsWith, 2)
 		const a = evalToString(rule.endsWith[0])
 		const b = evalToString(rule.endsWith[1])
 		return a.endsWith(b)
-	} else if (rule.startsWith) {
+	} else if (rule.hasOwnProperty('startsWith')) {
 		assertArrayArgs(rule.startsWith, 2)
 		const a = evalToString(rule.startsWith[0])
 		const b = evalToString(rule.startsWith[1])
 		return a.startsWith(b)
 	// variables/memory storage
-	} else if (rule.get) {
+	} else if (rule.hasOwnProperty('get')) {
 		assertType(rule.get, 'string')
 		if (input.hasOwnProperty(rule.get)) return input[rule.get]
 		if (output.hasOwnProperty(rule.get)) return output[rule.get]
 		throw { message: `UndefinedVar: ${rule.get}`, isUndefinedVar: true, undefinedVar: rule.get }
-	} else if (rule.set) {
+	} else if (rule.hasOwnProperty('set')) {
 		assertArrayArgs(rule.set, 2)
 		const key = assertType(rule.set[0], 'string')
 		const prevType = getTypeName(output[key])
 		const value = evalRule(rule.set[1])
 		output[key] = assertType(value, prevType)
 	// utilities
-	} else if (rule.onlyShowIf) {
+	} else if (rule.hasOwnProperty('onlyShowIf')) {
 		if (!evalToBoolean(rule.onlyShowIf)) output.show = false
 	}
 }
