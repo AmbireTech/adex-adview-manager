@@ -3,9 +3,9 @@ import { BN } from 'bn.js'
 // has 3 outcomes: does nothing, mutates output, throws error
 // eval errors: TypeError, UndefinedVar
 export function evaluate(input: any, output: any, rule: any) {
-	if (typeof(rule) === 'string') return rule
-	if (typeof(rule) === 'boolean') return rule
-	if (typeof(rule) === 'number') return rule
+	if (typeof rule === 'string') return rule
+	if (typeof rule === 'boolean') return rule
+	if (typeof rule === 'number') return rule
 	if (Array.isArray(rule)) return rule
 	if (rule instanceof BN) return rule
 	// @TODO: consider checking for other types such as symbol, undefined, function
@@ -25,13 +25,12 @@ export function evaluate(input: any, output: any, rule: any) {
 			throw { message: 'TypeError: expected array of two numbers' }
 		const a = evalRule(numbers[0])
 		const b = evalRule(numbers[1])
-		// @TODO: in those two cases, ensure the other is numeric
-		if (a instanceof BN) return onBNs(a, new BN(b))
-		if (b instanceof BN) return onBNs(new BN(a), b)
+		if (a instanceof BN) return onBNs(a, new BN(assertType(b, 'number')))
+		if (b instanceof BN) return onBNs(new BN(assertType(a, 'number')), b)
 		return onNumbers(assertType(a, 'number'), assertType(b, 'number'))
 	}
 
-	// @TODO: REFACTOR: assert argument count (2 args for everything except a few: onlyShowIf/get/not/do/ifElse)
+	// @TODO: REFACTOR: assert argument count (2 args for everything except a few: onlyShowIf/get/not/do/ifElse/bn)
 	// WARNING: if we make the math functions (lt/gt/gte/div/mul/mod/add/sub/max/min) support multiple args, then this refacotr won't be more elegant
 	// a lot expect the same type too
 
@@ -141,6 +140,10 @@ export function evaluate(input: any, output: any, rule: any) {
 			(a, b) => Math.min(a, b),
 			(a, b) => BN.min(a, b)
 		)
+	// construct a bn
+	} else if (rule.bn) {
+		// @TODO: should we allow evalRule here?
+		return new BN(assertType(evalRule(rule.bn), 'string'))
 	// strings
 	} else if (rule.split) {
 		const a = evalToString(rule.split[0])
