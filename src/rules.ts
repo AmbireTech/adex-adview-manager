@@ -8,7 +8,7 @@ export function evaluate(input: any, output: any, rule: any) {
 	if (typeof rule === 'number') return rule
 	if (Array.isArray(rule)) return rule
 	if (rule instanceof BN) return rule
-	// @TODO: consider checking for other types such as symbol, undefined, function
+	// @TODO: consider checking for other types such as symbol, undefined, function, bigint - and throw an error
 
 	const evalRule = evaluate.bind(null, input, output)
 	const evalToBoolean = x => assertType(evalRule(x), 'boolean')
@@ -162,7 +162,7 @@ export function evaluate(input: any, output: any, rule: any) {
 		assertType(rule.get, 'string')
 		if (input.hasOwnProperty(rule.get)) return input[rule.get]
 		if (output.hasOwnProperty(rule.get)) return output[rule.get]
-		throw { message: `UndefinedVar: ${rule.get}`, isUndefinedVar: true }
+		throw { message: `UndefinedVar: ${rule.get}`, isUndefinedVar: true, undefinedVar: rule.get }
 	} else if (rule.set) {
 		const key = assertType(rule.set[0], 'string')
 		const prevType = getTypeName(output[key])
@@ -175,6 +175,7 @@ export function evaluate(input: any, output: any, rule: any) {
 }
 
 export function evalMultiple(input: any, output: any, rules: any) {
+	// @TODO: ignore UndefinedVar errors; or just take onError callback
 	for (const rule of rules) {
 		evaluate(input, output, rule)
 		// We stop executing if at any point the show is set to false
