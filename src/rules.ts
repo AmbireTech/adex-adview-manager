@@ -30,18 +30,17 @@ export function evaluate(input: any, output: any, rule: any) {
 		return onNumbers(assertType(a, 'number'), assertType(b, 'number'))
 	}
 
-	// @TODO: REFACTOR: assert argument count (2 args for everything except a few: onlyShowIf/get/not/do/ifElse/bn)
-	// WARNING: if we make the math functions (lt/gt/gte/div/mul/mod/add/sub/max/min) support multiple args, then this refacotr won't be more elegant
-	// a lot expect the same type too
-
 	// flow control
 	if (rule.if) {
+		assertArrayArgs(rule.if, 2)
 		const predicate = evalToBoolean(rule.if[0])
 		if (predicate) evalRule(rule.if[1])
 	} else if (rule.ifNot) {
+		assertArrayArgs(rule.ifNot, 2)
 		const predicate = evalToBoolean(rule.ifNot[0])
 		if (!predicate) evalRule(rule.ifNot[1])
 	} else if (rule.ifElse) {
+		assertArrayArgs(rule.ifElse, 3)
 		const predicate = evalToBoolean(rule.ifElse[0])
 		if (predicate) return evalRule(rule.ifElse[1])
 		else return evalRule(rule.ifElse[2])
@@ -50,23 +49,28 @@ export function evaluate(input: any, output: any, rule: any) {
 	// lists
 	// @TODO: document that the lists functions do not support BigNumbers within them
 	} else if (rule.in) {
+		assertArrayArgs(rule.in, 2)
 		const a = evalToArray(rule.in[0])
 		const b = evalRule(rule.in[1])
 		return a.includes(b)
 	} else if (rule.nin) {
+		assertArrayArgs(rule.nin, 2)
 		const a = evalToArray(rule.nin[0])
 		const b = evalRule(rule.nin[1])
 		return !a.includes(b)
 	} else if (rule.intersects) {
+		assertArrayArgs(rule.intersects, 2)
 		const a = evalToArray(rule.intersects[0])
 		const b = evalToArray(rule.intersects[1])
 		return a.some(x => b.includes(x))
 	} else if (rule.at) {
+		assertArrayArgs(rule.at, 2)
 		const a = evalToArray(rule.at[0])
 		const idx = assertType(evalRule(rule.at[1]), 'number')
 		return a[idx]
 	// comparison
 	} else if (rule.eq) {
+		assertArrayArgs(rule.eq, 2)
 		const a = evalRule(rule.eq[0])
 		const b = evalRule(rule.eq[1])
 		if (a instanceof BN) return a.eq(new BN(b))
@@ -94,8 +98,10 @@ export function evaluate(input: any, output: any, rule: any) {
 	} else if (rule.not) {
 		return !evalToBoolean(rule.not)
 	} else if (rule.or) {
+		assertArrayArgs(rule.or, 2)
 		return evalToBoolean(rule.or[0]) || evalToBoolean(rule.or[1])
 	} else if (rule.and) {
+		assertArrayArgs(rule.and, 2)
 		return evalToBoolean(rule.and[0]) && evalToBoolean(rule.and[1])
 	// math
 	} else if (rule.div) {
@@ -146,14 +152,17 @@ export function evaluate(input: any, output: any, rule: any) {
 		return new BN(assertType(evalRule(rule.bn), 'string'))
 	// strings
 	} else if (rule.split) {
+		assertArrayArgs(rule.split, 2)
 		const a = evalToString(rule.split[0])
 		const b = evalToString(rule.split[1])
 		return a.split(b)
 	} else if (rule.endsWith) {
+		assertArrayArgs(rule.endsWith, 2)
 		const a = evalToString(rule.endsWith[0])
 		const b = evalToString(rule.endsWith[1])
 		return a.endsWith(b)
 	} else if (rule.startsWith) {
+		assertArrayArgs(rule.startsWith, 2)
 		const a = evalToString(rule.startsWith[0])
 		const b = evalToString(rule.startsWith[1])
 		return a.startsWith(b)
@@ -164,6 +173,7 @@ export function evaluate(input: any, output: any, rule: any) {
 		if (output.hasOwnProperty(rule.get)) return output[rule.get]
 		throw { message: `UndefinedVar: ${rule.get}`, isUndefinedVar: true, undefinedVar: rule.get }
 	} else if (rule.set) {
+		assertArrayArgs(rule.set, 2)
 		const key = assertType(rule.set[0], 'string')
 		const prevType = getTypeName(output[key])
 		const value = evalRule(rule.set[1])
@@ -200,4 +210,15 @@ function assertType(value: any, typeName: string): any {
 		}
 	}
 	return value
+}
+
+function assertArrayArgs(args: any, len?: number) {
+	if (!Array.isArray(args)) throw {
+		message: `TypeError: expected array arguments, got ${typeof args}`,
+		isTypeError: true
+	}
+	if (len !== undefined && args.length !== len) throw {
+		message: `TypeError: wrong number of arguments, ${len} expected`,
+		isTypeError: true
+	}
 }

@@ -3,6 +3,7 @@ import * as test from 'tape'
 import { BN } from 'bn.js'
 
 console.log(evaluate({}, {}, { bn: '100000' }))
+console.log(evaluate({}, {}, { ifElse: [{endsWith: ['foo', 'oo']}, 'cool and good', 'not'] }))
 
 /*console.log(evaluate({}, {}, 
 { if: [
