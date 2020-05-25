@@ -98,8 +98,19 @@ test('logic functions: errors', t => {
 	t.end()
 })
 
+// math
+test('math: BigNumber coercion', t => {
+	t.equal(evalPure({ add: [5, 6] }), 11)
+	t.deepEqual(evalPure({ add: [new BN(5), 6] }), new BN(11))
+	t.deepEqual(evalPure({ add: [5, new BN(6)] }), new BN(11))
+	t.end()
+})
+
+// @TODO: test mod, div, mul, sub, min, max
+
 // set/get
 test('set/get: errors', t => {
+	t.throws(() => evaluate({}, {}, { get: 'somevar' }), RuleEvalError, 'undefined variable error')
 	t.throws(() => evalToOutput({ set: ['foo', 'string'] }), RuleEvalError, 'cannot change type of an output variable')
 	t.end()
 })
