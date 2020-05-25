@@ -13,6 +13,8 @@ export function evaluate(input: any, output: any, rule: any) {
 
 	const evalRule = evaluate.bind(null, input, output)
 	const evalToBoolean = x => assertType(evalRule(x), 'boolean')
+	const evalToArray = x => assertType(evalRule(x), 'array')
+
 	// flow control
 	if (rule.if) {
 		const predicate = evalToBoolean(rule.if[0])
@@ -29,17 +31,21 @@ export function evaluate(input: any, output: any, rule: any) {
 	// lists
 	// @TODO: document that the lists functions do not support BigNumbers within them
 	} else if (rule.in) {
-		const a = evalRule(rule.in[0])
+		const a = evalToArray(rule.in[0])
 		const b = evalRule(rule.in[1])
 		return a.includes(b)
 	} else if (rule.nin) {
-		const a = evalRule(rule.nin[0])
+		const a = evalToArray(rule.nin[0])
 		const b = evalRule(rule.nin[1])
 		return !a.includes(b)
 	} else if (rule.intersects) {
-		const a = evalRule(rule.intersects[0])
-		const b = evalRule(rule.intersects[1])
+		const a = evalToArray(rule.intersects[0])
+		const b = evalToArray(rule.intersects[1])
 		return a.some(x => b.includes(x))
+	} else if (rule.at) {
+		const a = evalToArray(rule.at[0])
+		const idx = assertType(evalRule(rule.at[1]), 'number')
+		return a[idx]
 	// comparison
 	} else if (rule.eq) {
 		const a = evalRule(rule.eq[0])
@@ -115,6 +121,10 @@ export function evaluate(input: any, output: any, rule: any) {
 			(a, b) => Math.min(a, b),
 			(a, b) => BN.min(a, b)
 		)
+	// strings
+	} else if (rule.split) {
+	} else if (rule.endsWith) {
+	} else if (rule.startsWith) {
 	// variables/memory storage
 	} else if (rule.get) {
 		// @TODO: undefined var error
