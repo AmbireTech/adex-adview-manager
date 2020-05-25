@@ -8,6 +8,8 @@ export function evaluate(input: any, output: any, rule: any) {
 	if (typeof(rule) === 'boolean') return rule
 	if (typeof(rule) === 'number') return rule
 	if (Array.isArray(rule)) return rule
+	if (rule instanceof BN) return rule
+	// @TODO: consider checking for other types such as symbol, undefined, function
 
 	const evalRule = evaluate.bind(null, input, output)
 	// @TODO assert that args are arrays (or are not, in case of onlyShowIf, get)
@@ -51,8 +53,7 @@ export function evaluate(input: any, output: any, rule: any) {
 		return input.hasOwnProperty(rule.get) ? input[rule.get] : output[rule.get]
 	} else if (rule.set) {
 		const key = assertType(rule.set[0], 'string')
-		// @TODO: separate error for trying to set undefined
-		const prevType = typeof output[key]
+		const prevType = getTypeName(output[key])
 		const value = evalRule(rule.set[1])
 		output[key] = assertType(value, prevType)
 	// utilities
@@ -70,7 +71,7 @@ export function evaluate(input: any, output: any, rule: any) {
 	} else if (rule.gte) {
 	
 	// logic
-	// @TODO: typechecking and type errors
+	// @TODO: assert boolean types here
 	} else if (rule.not) {
 		return !evalRule(rule.not)
 	} else if (rule.or) {
@@ -97,11 +98,16 @@ export function evalMultiple(input: any, output: any, rules: any) {
 	return output
 }
 
+// NOTE: we don't specify "array of <type>" cause we don't really need to validate the type of stuff in arrays
+// plus, it's more expensive performance wise
+function getTypeName(value: any): string {
+	if (Array.isArray(value)) return 'array'
+	if (value instanceof BN) return 'bignumber'
+	return typeof value
+}
+
 function assertType(value: any, typeName: string): any {
-	// NOTE: we don't specify "array of <type>" cause we don't really need to validate the type of stuff in arrays
-	// plus, it's more expensive performance wise
-	if (Array.isArray(value) && typeName === 'array') return value
-	if (typeof value !== typeName) {
+	if (getTypeName(value) !== typeName) {
 		// @TODO: message?
 		throw {
 			message: 'TypeError',
@@ -111,7 +117,8 @@ function assertType(value: any, typeName: string): any {
 	return value
 }
 
-// @TODO types
+// @TODO types for the arguments
+// @TODO implementation
 function withNumbers(numbers: any, onNumbers: any, onBNs: any): any {
 	// min 2 args
 	// case when there are two args
