@@ -12,22 +12,20 @@ export function evaluate(input: any, output: any, rule: any) {
 	// @TODO: consider checking for other types such as symbol, undefined, function
 
 	const evalRule = evaluate.bind(null, input, output)
+	const evalToBoolean = x => assertType(evalRule(x), 'boolean')
 	// @TODO assert that args are arrays (or are not, in case of onlyShowIf, get)
-	// @TODO: can we simplify all of this if map all args to evalRule first?
-	// @TODO math
 	// @TODO strings
 	// flow control
 	if (rule.if) {
-		const predicate = assertType(evalRule(rule.if[0]), 'boolean')
+		const predicate = evalToBoolean(rule.if[0])
 		if (predicate) evalRule(rule.if[1])
 	// @TODO: can we reuse code?
 	} else if (rule.ifNot) {
-		const predicate = assertType(evalRule(rule.ifNot[0]), 'boolean')
+		const predicate = evalToBoolean(rule.ifNot[0])
 		if (!predicate) evalRule(rule.ifNot[1])
 	} else if (rule.ifElse) {
-		const predicate = rule.ifElse[0]
-		assertType(predicate, 'boolean')
-		if (evalRule(predicate)) return evalRule(rule.ifElse[1])
+		const predicate = evalToBoolean(rule.ifElse[0])
+		if (predicate) return evalRule(rule.ifElse[1])
 		else return evalRule(rule.ifElse[2])
 	} else if (rule.do) {
 		return rule.do.map(evalRule)
@@ -48,7 +46,7 @@ export function evaluate(input: any, output: any, rule: any) {
 	// variables/memory storage
 	} else if (rule.get) {
 		// @TODO: undefined var error
-		// @TODO assert rule.get is a string
+		assertType(rule.get, 'string')
 		return input.hasOwnProperty(rule.get) ? input[rule.get] : output[rule.get]
 	} else if (rule.set) {
 		const key = assertType(rule.set[0], 'string')
@@ -70,13 +68,12 @@ export function evaluate(input: any, output: any, rule: any) {
 	} else if (rule.gte) {
 	
 	// logic
-	// @TODO: assert boolean types here
 	} else if (rule.not) {
-		return !evalRule(rule.not)
+		return !evalToBoolean(rule.not)
 	} else if (rule.or) {
-		return evalRule(rule.or[0]) || evalRule(rule.or[1])
+		return evalToBoolean(rule.or[0]) || evalToBoolean(rule.or[1])
 	} else if (rule.and) {
-		return evalRule(rule.and[0]) && evalRule(rule.and[1])
+		return evalToBoolean(rule.and[0]) && evalToBoolean(rule.and[1])
 	// math
 	} else if (rule.div) {
 		return withNumbers(
@@ -144,7 +141,7 @@ function assertType(value: any, typeName: string): any {
 	if (getTypeName(value) !== typeName) {
 		// @TODO: message?
 		throw {
-			message: 'TypeError',
+			message: `TypeError: expected ${value} to be of type ${typeName}`,
 			isTypeError: true
 		}
 	}
