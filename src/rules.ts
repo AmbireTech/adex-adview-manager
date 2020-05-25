@@ -15,7 +15,8 @@ export function evaluate(input: any, output: any, rule: any) {
 	const evalToString = x => assertType(evalRule(x), 'string')
 	const evalToArray = x => assertType(evalRule(x), 'array')
 
-	// @TODO: REFACTOR: assert argument count (2 args for everything except a few)
+	// @TODO: REFACTOR: assert argument count (2 args for everything except a few: onlyShowIf/get/not/do/ifElse)
+	// WARNING: if we make the math functions (lt/gt/gte/div/mul/mod/add/sub/max/min) support multiple args, then this refacotr won't be more elegant
 	// a lot expect the same type too
 
 	// flow control
@@ -139,9 +140,10 @@ export function evaluate(input: any, output: any, rule: any) {
 		return a.startsWith(b)
 	// variables/memory storage
 	} else if (rule.get) {
-		// @TODO: undefined var error
 		assertType(rule.get, 'string')
-		return input.hasOwnProperty(rule.get) ? input[rule.get] : output[rule.get]
+		if (input.hasOwnProperty(rule.get)) return input[rule.get]
+		if (output.hasOwnProperty(rule.get)) return output[rule.get]
+		throw { message: `UndefinedVar: ${rule.get}`, isUndefinedVar: true }
 	} else if (rule.set) {
 		const key = assertType(rule.set[0], 'string')
 		const prevType = getTypeName(output[key])
@@ -181,8 +183,6 @@ function assertType(value: any, typeName: string): any {
 }
 
 // @TODO types for the arguments
-// @TODO implementation
-// @TODO type casts, BigNumbers
 function withNumbers(numbers: Array<any>, onNumbers: any, onBNs: any): any {
 	// @TODO consider handling passing in more than 2 numbers
 	// but this won't be applicable (or at least not intuitive to gte/gt/lt)
