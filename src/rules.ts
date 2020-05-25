@@ -2,7 +2,6 @@ import { BN } from 'bn.js'
 
 // has 3 outcomes: does nothing, mutates output, throws error
 // eval errors: TypeError, UndefinedVars
-// @TODO typing
 export function evaluate(input: any, output: any, rule: any) {
 	if (typeof(rule) === 'string') return rule
 	if (typeof(rule) === 'boolean') return rule
@@ -13,7 +12,11 @@ export function evaluate(input: any, output: any, rule: any) {
 
 	const evalRule = evaluate.bind(null, input, output)
 	const evalToBoolean = x => assertType(evalRule(x), 'boolean')
+	const evalToString = x => assertType(evalRule(x), 'string')
 	const evalToArray = x => assertType(evalRule(x), 'array')
+
+	// @TODO: REFACTOR: assert argument count (2 args for everything except a few)
+	// a lot expect the same type too
 
 	// flow control
 	if (rule.if) {
@@ -123,8 +126,17 @@ export function evaluate(input: any, output: any, rule: any) {
 		)
 	// strings
 	} else if (rule.split) {
+		const a = evalToString(rule.split[0])
+		const b = evalToString(rule.split[1])
+		return a.split(b)
 	} else if (rule.endsWith) {
+		const a = evalToString(rule.endsWith[0])
+		const b = evalToString(rule.endsWith[1])
+		return a.endsWith(b)
 	} else if (rule.startsWith) {
+		const a = evalToString(rule.startsWith[0])
+		const b = evalToString(rule.startsWith[1])
+		return a.startsWith(b)
 	// variables/memory storage
 	} else if (rule.get) {
 		// @TODO: undefined var error
@@ -160,7 +172,6 @@ function getTypeName(value: any): string {
 
 function assertType(value: any, typeName: string): any {
 	if (getTypeName(value) !== typeName) {
-		// @TODO: message?
 		throw {
 			message: `TypeError: expected ${value} to be of type ${typeName}`,
 			isTypeError: true
@@ -172,12 +183,10 @@ function assertType(value: any, typeName: string): any {
 // @TODO types for the arguments
 // @TODO implementation
 // @TODO type casts, BigNumbers
-function withNumbers(numbers: any, onNumbers: any, onBNs: any): any {
+function withNumbers(numbers: Array<any>, onNumbers: any, onBNs: any): any {
 	// @TODO consider handling passing in more than 2 numbers
 	// but this won't be applicable (or at least not intuitive to gte/gt/lt)
 	// except for Python people, cause they have chain comparison
-	// min 2 args
-	// case when there are two args
-	// case when there are multiple
-	// case when numbers, case when BN
+	if (!(Array.isArray(numbers) && numbers.length === 2))
+		throw { message: 'TypeError: expected array of two numbers' }
 }
