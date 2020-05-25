@@ -15,6 +15,22 @@ export function evaluate(input: any, output: any, rule: any) {
 	const evalToString = x => assertType(evalRule(x), 'string')
 	const evalToArray = x => assertType(evalRule(x), 'array')
 
+	// While this might look broadly similar to the eq implementation, it may change if we add support for more than 2 numbers
+	// @TODO types for the arguments
+	const evalWithNumbers = (numbers: Array<any>, onNumbers: any, onBNs: any) => {
+		// @TODO consider handling passing in more than 2 numbers
+		// but this won't be applicable (or at least not intuitive to gte/gt/lt)
+		// except for Python people, cause they have chain comparison
+		if (!(Array.isArray(numbers) && numbers.length === 2))
+			throw { message: 'TypeError: expected array of two numbers' }
+		const a = evalRule(numbers[0])
+		const b = evalRule(numbers[1])
+		// @TODO: in those two cases, ensure the other is numeric
+		if (a instanceof BN) return onBNs(a, new BN(b))
+		if (b instanceof BN) return onBNs(new BN(a), b)
+		return onNumbers(assertType(a, 'number'), assertType(b, 'number'))
+	}
+
 	// @TODO: REFACTOR: assert argument count (2 args for everything except a few: onlyShowIf/get/not/do/ifElse)
 	// WARNING: if we make the math functions (lt/gt/gte/div/mul/mod/add/sub/max/min) support multiple args, then this refacotr won't be more elegant
 	// a lot expect the same type too
@@ -58,19 +74,19 @@ export function evaluate(input: any, output: any, rule: any) {
 		if (b instanceof BN) return b.eq(new BN(a))
 		return a === b
 	} else if (rule.lt) {
-		return withNumbers(
+		return evalWithNumbers(
 			rule.lt,
 			(a, b) => a < b,
 			(a, b) => a.lt(b)
 		)
 	} else if (rule.gt) {
-		return withNumbers(
+		return evalWithNumbers(
 			rule.gt,
 			(a, b) => a > b,
 			(a, b) => a.gt(b)
 		)
 	} else if (rule.gte) {
-		return withNumbers(
+		return evalWithNumbers(
 			rule.gte,
 			(a, b) => a >= b,
 			(a, b) => a.gte(b)
@@ -84,43 +100,43 @@ export function evaluate(input: any, output: any, rule: any) {
 		return evalToBoolean(rule.and[0]) && evalToBoolean(rule.and[1])
 	// math
 	} else if (rule.div) {
-		return withNumbers(
+		return evalWithNumbers(
 			rule.div,
 			(a, b) => a / b,
 			(a, b) => a.div(b)
 		)
 	} else if (rule.mul) {
-		return withNumbers(
+		return evalWithNumbers(
 			rule.mul,
 			(a, b) => a * b,
 			(a, b) => a.mul(b)
 		)
 	} else if (rule.mod) {
-		return withNumbers(
+		return evalWithNumbers(
 			rule.mod,
 			(a, b) => a % b,
 			(a, b) => a.mod(b)
 		)
 	} else if (rule.add) {
-		return withNumbers(
+		return evalWithNumbers(
 			rule.add,
 			(a, b) => a + b,
 			(a, b) => a.add(b)
 		)
 	} else if (rule.sub) {
-		return withNumbers(
+		return evalWithNumbers(
 			rule.sub,
 			(a, b) => a - b,
 			(a, b) => a.sub(b)
 		)
 	} else if (rule.max) {
-		return withNumbers(
+		return evalWithNumbers(
 			rule.max,
 			(a, b) => Math.max(a, b),
 			(a, b) => BN.max(a, b)
 		)
 	} else if (rule.min) {
-		return withNumbers(
+		return evalWithNumbers(
 			rule.min,
 			(a, b) => Math.min(a, b),
 			(a, b) => BN.min(a, b)
@@ -180,13 +196,4 @@ function assertType(value: any, typeName: string): any {
 		}
 	}
 	return value
-}
-
-// @TODO types for the arguments
-function withNumbers(numbers: Array<any>, onNumbers: any, onBNs: any): any {
-	// @TODO consider handling passing in more than 2 numbers
-	// but this won't be applicable (or at least not intuitive to gte/gt/lt)
-	// except for Python people, cause they have chain comparison
-	if (!(Array.isArray(numbers) && numbers.length === 2))
-		throw { message: 'TypeError: expected array of two numbers' }
 }
