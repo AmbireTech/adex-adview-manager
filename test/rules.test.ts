@@ -1,4 +1,4 @@
-import { evaluate, evalMultiple } from '../src/rules'
+import { evaluate, evalMultiple, RuleEvalError } from '../src/rules'
 import * as test from 'tape'
 import { BN } from 'bn.js'
 
@@ -27,4 +27,9 @@ test('logic functions', t => {
 	t.end()
 })
 
-//test('logic functions: errors')
+test('logic functions: errors', t => {
+	t.throws(() => evalPure({ not: 5 }), RuleEvalError)
+	t.throws(() => evalPure({ and: false }), RuleEvalError)
+	t.throws(() => evalPure({ or: true }), RuleEvalError)
+	t.end()
+})

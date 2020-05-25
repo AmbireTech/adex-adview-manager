@@ -22,7 +22,7 @@ export function evaluate(input: any, output: any, rule: any) {
 		// but this won't be applicable (or at least not intuitive to gte/gt/lt)
 		// except for Python people, cause they have chain comparison
 		if (!(Array.isArray(numbers) && numbers.length === 2))
-			throw { message: 'TypeError: expected array of two numbers' }
+			throw new RuleEvalError({ message: 'TypeError: expected array of two numbers', isTypeError: true })
 		const a = evalRule(numbers[0])
 		const b = evalRule(numbers[1])
 		if (a instanceof BN) return onBNs(a, new BN(assertType(b, 'number')))
@@ -171,7 +171,7 @@ export function evaluate(input: any, output: any, rule: any) {
 		assertType(rule.get, 'string')
 		if (input.hasOwnProperty(rule.get)) return input[rule.get]
 		if (output.hasOwnProperty(rule.get)) return output[rule.get]
-		throw { message: `UndefinedVar: ${rule.get}`, isUndefinedVar: true, undefinedVar: rule.get }
+		throw new RuleEvalError({ message: `UndefinedVar: ${rule.get}`, undefinedVar: rule.get })
 	} else if (rule.hasOwnProperty('set')) {
 		assertArrayArgs(rule.set, 2)
 		const key = assertType(rule.set[0], 'string')
@@ -194,6 +194,15 @@ export function evalMultiple(input: any, output: any, rules: any) {
 	return output
 }
 
+export function RuleEvalError(params: any) {
+	this.message = params.message
+	if (params.isTypeError) this.isTypeError = true
+	if (params.undefinedVar) {
+		this.undefinedVar = params.undefinedVar
+		this.isUndefinedVar = true
+	}
+}
+
 // NOTE: we don't specify "array of <type>" cause we don't really need to validate the type of stuff in arrays
 // plus, that would be more expensive performance wise
 function getTypeName(value: any): string {
@@ -204,21 +213,21 @@ function getTypeName(value: any): string {
 
 function assertType(value: any, typeName: string): any {
 	if (getTypeName(value) !== typeName) {
-		throw {
+		throw new RuleEvalError({
 			message: `TypeError: expected ${value} to be of type ${typeName}`,
 			isTypeError: true
-		}
+		})
 	}
 	return value
 }
 
 function assertArrayArgs(args: any, len?: number) {
-	if (!Array.isArray(args)) throw {
+	if (!Array.isArray(args)) throw new RuleEvalError({
 		message: `TypeError: expected array arguments, got ${typeof args}`,
 		isTypeError: true
-	}
-	if (len !== undefined && args.length !== len) throw {
+	})
+	if (len !== undefined && args.length !== len) throw new RuleEvalError({
 		message: `TypeError: wrong number of arguments, ${len} expected`,
 		isTypeError: true
-	}
+	})
 }
