@@ -13,7 +13,6 @@ export function evaluate(input: any, output: any, rule: any) {
 
 	const evalRule = evaluate.bind(null, input, output)
 	const evalToBoolean = x => assertType(evalRule(x), 'boolean')
-	// @TODO assert that args are arrays (or are not, in case of onlyShowIf, get)
 	// @TODO strings
 	// flow control
 	if (rule.if) {
@@ -55,7 +54,7 @@ export function evaluate(input: any, output: any, rule: any) {
 		output[key] = assertType(value, prevType)
 	// utilities
 	} else if (rule.onlyShowIf) {
-		if (!evalRule(rule.onlyShowIf)) output.show = false
+		if (!evalBoolean(rule.onlyShowIf)) output.show = false
 	// comparison
 	} else if (rule.eq) {
 		const a = evalRule(rule.eq[0])
