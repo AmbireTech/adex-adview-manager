@@ -47,6 +47,36 @@ test('lists', t => {
 	t.end()
 })
 
+// comparison
+test('comparison: equality', t => {
+	t.equal(evalPure({ eq: [true, false] }), false)
+	t.equal(evalPure({ eq: [true, true] }), true)
+	t.equal(evalPure({ eq: [55, 55] }), true)
+	t.equal(evalPure({ eq: [55, new BN(55)] }), true)
+	t.equal(evalPure({ eq: [55, new BN(56)] }), false)
+	t.equal(evalPure({ eq: [new BN(55), 55] }), true)
+	t.equal(evalPure({ eq: [new BN(55), 56] }), false)
+	t.equal(evalPure({ eq: [new BN(55), new BN(55)] }), true)
+	t.equal(evalPure({ eq: [new BN(55), new BN(56)] }), false)
+	t.equal(evalPure({ eq: ['one', 'one'] }), true)
+	t.equal(evalPure({ eq: ['one', 'two'] }), false)
+	t.end()
+})
+
+test('comparison: numbers', t => {
+	t.equal(evalPure({ lt: [55, 100] }), true)
+	t.equal(evalPure({ lt: [new BN(55), 100] }), true)
+	t.equal(evalPure({ lt: [55, new BN(100)] }), true)
+	t.equal(evalPure({ gt: [55, 100] }), false)
+	t.equal(evalPure({ gt: [new BN(55), 100] }), false)
+	t.end()
+})
+
+test('comparison: type errors', t => {
+	t.throws(() => evalPure({ gt: [5, 'foobar'] }), RuleEvalError)
+	t.throws(() => evalPure({ gt: [new BN(12313), 'foobar'] }), RuleEvalError)
+	t.end()
+})
 
 // logic
 test('logic functions', t => {
