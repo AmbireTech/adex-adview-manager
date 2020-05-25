@@ -120,4 +120,20 @@ test('set/get: errors', t => {
 	t.end()
 })
 
+// more complex impressions
+test('integration 1: multiply price on publisher', t => {
+	const rule = { if: [
+	   { eq: [{ get: 'publisherId' }, '0xd5860D6196A4900bf46617cEf088ee6E6b61C9d6'] },
+	   { set: ['price.IMPRESSION', { mul: [2, { get: 'price.IMPRESSION' }] }] }
+	] }
 
+	const evalWithInput = input => {
+		let output = { 'price.IMPRESSION': new BN(120) }
+		evaluate(input, output, rule)
+		return output
+	}
+
+	t.deepEqual(evalWithInput({ publisherId: 'rando pub' }), { 'price.IMPRESSION': new BN(120) })
+	t.deepEqual(evalWithInput({ publisherId: '0xd5860D6196A4900bf46617cEf088ee6E6b61C9d6' }), { 'price.IMPRESSION': new BN(240) })
+	t.end()
+})
