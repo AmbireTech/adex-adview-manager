@@ -9,7 +9,6 @@ const evalToOutput = x => {
 	return output
 }
 
-console.log(evaluate({}, {}, { bn: '100000' }))
 console.log(evaluate({}, {}, { ifElse: [{endsWith: ['foo', 'oo']}, 'cool and good', 'not'] }))
 
 /*console.log(evaluate({}, {}, 
@@ -103,6 +102,12 @@ test('math: BigNumber coercion', t => {
 	t.equal(evalPure({ add: [5, 6] }), 11)
 	t.deepEqual(evalPure({ add: [new BN(5), 6] }), new BN(11))
 	t.deepEqual(evalPure({ add: [5, new BN(6)] }), new BN(11))
+	t.end()
+})
+
+test('can construct a BigNumber', t => {
+	const numStr = '165987120956145983587125'
+	t.deepEqual(evalPure({ bn: numStr }), new BN(numStr))
 	t.end()
 })
 
