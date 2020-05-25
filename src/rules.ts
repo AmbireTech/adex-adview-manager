@@ -9,13 +9,19 @@ export function evaluate(input: any, output: any, rule: any) {
 	if (Array.isArray(rule)) return rule
 
 	const evalRule = evaluate.bind(null, input, output)
-	// @TODO: typechecking and type errors
 	// @TODO assert that args are arrays (or are not, in case of onlyShowIf, get)
-	// basic operators
+	// @TODO: can we simplify all of this if map all args to evalRule first?
+	// @TODO math
+	// @TODO type casts, BigNumbers
+	// @TODO strings
+	// flow control
 	if (rule.if) {
-		const predicate = rule.if[0]
-		assertType(predicate, 'boolean')
-		if (evalRule(predicate)) evalRule(rule.if[1])
+		const predicate = assertType(evalRule(rule.if[0]), 'boolean')
+		if (predicate) evalRule(rule.if[1])
+	// @TODO: can we reuse code?
+	} else if (rule.ifNot) {
+		const predicate = assertType(evalRule(rule.ifNot[0]), 'boolean')
+		if (!predicate) evalRule(rule.ifNot[1])
 	} else if (rule.ifElse) {
 		const predicate = rule.ifElse[0]
 		assertType(predicate, 'boolean')
@@ -24,6 +30,10 @@ export function evaluate(input: any, output: any, rule: any) {
 	} else if (rule.do) {
 		return rule.do.map(evalRule)
 	// lists
+	} else if (rule.in) {
+		const a = evalRule(rule.in[0])
+		const b = evalRule(rule.in[1])
+		return a.includes(b)
 	} else if (rule.intersects) {
 		const a = evalRule(rule.intersects[0])
 		const b = evalRule(rule.intersects[1])
@@ -40,9 +50,11 @@ export function evaluate(input: any, output: any, rule: any) {
 		const value = evalRule(rule.set[1])
 		// @TODO type check
 		output[key] = assertType(value, prevType)
+	// utilities
 	} else if (rule.onlyShowIf) {
 		if (!evalRule(rule.onlyShowIf)) output.show = false
 	// logic
+	// @TODO: typechecking and type errors
 	} else if (rule.not) {
 		return !evalRule(rule.not)
 	} else if (rule.or) {
