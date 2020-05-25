@@ -1,7 +1,7 @@
 import { BN } from 'bn.js'
 
 // has 3 outcomes: does nothing, mutates output, throws error
-// eval errors: TypeError, UndefinedVars
+// eval errors: TypeError, UndefinedVar
 export function evaluate(input: any, output: any, rule: any) {
 	if (typeof(rule) === 'string') return rule
 	if (typeof(rule) === 'boolean') return rule
@@ -181,7 +181,7 @@ export function evalMultiple(input: any, output: any, rules: any) {
 }
 
 // NOTE: we don't specify "array of <type>" cause we don't really need to validate the type of stuff in arrays
-// plus, it's more expensive performance wise
+// plus, that would be more expensive performance wise
 function getTypeName(value: any): string {
 	if (Array.isArray(value)) return 'array'
 	if (value instanceof BN) return 'bignumber'
