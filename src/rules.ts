@@ -13,12 +13,10 @@ export function evaluate(input: any, output: any, rule: any) {
 
 	const evalRule = evaluate.bind(null, input, output)
 	const evalToBoolean = x => assertType(evalRule(x), 'boolean')
-	// @TODO strings
 	// flow control
 	if (rule.if) {
 		const predicate = evalToBoolean(rule.if[0])
 		if (predicate) evalRule(rule.if[1])
-	// @TODO: can we reuse code?
 	} else if (rule.ifNot) {
 		const predicate = evalToBoolean(rule.ifNot[0])
 		if (!predicate) evalRule(rule.ifNot[1])
@@ -42,19 +40,6 @@ export function evaluate(input: any, output: any, rule: any) {
 		const a = evalRule(rule.intersects[0])
 		const b = evalRule(rule.intersects[1])
 		return a.some(x => b.includes(x))
-	// variables/memory storage
-	} else if (rule.get) {
-		// @TODO: undefined var error
-		assertType(rule.get, 'string')
-		return input.hasOwnProperty(rule.get) ? input[rule.get] : output[rule.get]
-	} else if (rule.set) {
-		const key = assertType(rule.set[0], 'string')
-		const prevType = getTypeName(output[key])
-		const value = evalRule(rule.set[1])
-		output[key] = assertType(value, prevType)
-	// utilities
-	} else if (rule.onlyShowIf) {
-		if (!evalBoolean(rule.onlyShowIf)) output.show = false
 	// comparison
 	} else if (rule.eq) {
 		const a = evalRule(rule.eq[0])
@@ -63,9 +48,23 @@ export function evaluate(input: any, output: any, rule: any) {
 		if (b instanceof BN) return b.eq(new BN(a))
 		return a === b
 	} else if (rule.lt) {
+		return withNumbers(
+			rule.lt,
+			(a, b) => a < b,
+			(a, b) => a.lt(b)
+		)
 	} else if (rule.gt) {
+		return withNumbers(
+			rule.gt,
+			(a, b) => a > b,
+			(a, b) => a.gt(b)
+		)
 	} else if (rule.gte) {
-	
+		return withNumbers(
+			rule.gte,
+			(a, b) => a >= b,
+			(a, b) => a.gte(b)
+		)
 	// logic
 	} else if (rule.not) {
 		return !evalToBoolean(rule.not)
@@ -116,6 +115,19 @@ export function evaluate(input: any, output: any, rule: any) {
 			(a, b) => Math.min(a, b),
 			(a, b) => BN.min(a, b)
 		)
+	// variables/memory storage
+	} else if (rule.get) {
+		// @TODO: undefined var error
+		assertType(rule.get, 'string')
+		return input.hasOwnProperty(rule.get) ? input[rule.get] : output[rule.get]
+	} else if (rule.set) {
+		const key = assertType(rule.set[0], 'string')
+		const prevType = getTypeName(output[key])
+		const value = evalRule(rule.set[1])
+		output[key] = assertType(value, prevType)
+	// utilities
+	} else if (rule.onlyShowIf) {
+		if (!evalToBoolean(rule.onlyShowIf)) output.show = false
 	}
 }
 
@@ -151,6 +163,9 @@ function assertType(value: any, typeName: string): any {
 // @TODO implementation
 // @TODO type casts, BigNumbers
 function withNumbers(numbers: any, onNumbers: any, onBNs: any): any {
+	// @TODO consider handling passing in more than 2 numbers
+	// but this won't be applicable (or at least not intuitive to gte/gt/lt)
+	// except for Python people, cause they have chain comparison
 	// min 2 args
 	// case when there are two args
 	// case when there are multiple
