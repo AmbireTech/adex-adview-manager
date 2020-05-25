@@ -15,7 +15,6 @@ export function evaluate(input: any, output: any, rule: any) {
 	// @TODO assert that args are arrays (or are not, in case of onlyShowIf, get)
 	// @TODO: can we simplify all of this if map all args to evalRule first?
 	// @TODO math
-	// @TODO type casts, BigNumbers
 	// @TODO strings
 	// flow control
 	if (rule.if) {
@@ -80,12 +79,47 @@ export function evaluate(input: any, output: any, rule: any) {
 		return evalRule(rule.and[0]) && evalRule(rule.and[1])
 	// math
 	} else if (rule.div) {
+		return withNumbers(
+			rule.div,
+			(a, b) => a / b,
+			(a, b) => a.div(b)
+		)
 	} else if (rule.mul) {
+		return withNumbers(
+			rule.mul,
+			(a, b) => a * b,
+			(a, b) => a.mul(b)
+		)
 	} else if (rule.mod) {
+		return withNumbers(
+			rule.mod,
+			(a, b) => a % b,
+			(a, b) => a.mod(b)
+		)
 	} else if (rule.add) {
+		return withNumbers(
+			rule.add,
+			(a, b) => a + b,
+			(a, b) => a.add(b)
+		)
 	} else if (rule.sub) {
+		return withNumbers(
+			rule.sub,
+			(a, b) => a - b,
+			(a, b) => a.sub(b)
+		)
 	} else if (rule.max) {
+		return withNumbers(
+			rule.max,
+			(a, b) => Math.max(a, b),
+			(a, b) => BN.max(a, b)
+		)
 	} else if (rule.min) {
+		return withNumbers(
+			rule.min,
+			(a, b) => Math.min(a, b),
+			(a, b) => BN.min(a, b)
+		)
 	}
 }
 
@@ -119,6 +153,7 @@ function assertType(value: any, typeName: string): any {
 
 // @TODO types for the arguments
 // @TODO implementation
+// @TODO type casts, BigNumbers
 function withNumbers(numbers: any, onNumbers: any, onBNs: any): any {
 	// min 2 args
 	// case when there are two args
