@@ -121,7 +121,7 @@ test('set/get: errors', t => {
 })
 
 // more complex impressions
-test('integration 1: multiply price on publisher', t => {
+test('complex rules from examples: publisher match', t => {
 	const rule = { if: [
 	   { eq: [{ get: 'publisherId' }, '0xd5860D6196A4900bf46617cEf088ee6E6b61C9d6'] },
 	   { set: ['price.IMPRESSION', { mul: [2, { get: 'price.IMPRESSION' }] }] }
@@ -133,7 +133,31 @@ test('integration 1: multiply price on publisher', t => {
 		return output
 	}
 
-	t.deepEqual(evalWithInput({ publisherId: 'rando pub' }), { 'price.IMPRESSION': new BN(120) })
-	t.deepEqual(evalWithInput({ publisherId: '0xd5860D6196A4900bf46617cEf088ee6E6b61C9d6' }), { 'price.IMPRESSION': new BN(240) })
+	t.deepEqual(evalWithInput({ publisherId: 'rando pub' }), { 'price.IMPRESSION': new BN(120) }, 'do not multiply price on publisher')
+	t.deepEqual(evalWithInput({ publisherId: '0xd5860D6196A4900bf46617cEf088ee6E6b61C9d6' }), { 'price.IMPRESSION': new BN(240) }, 'multiply price on publisher')
+	t.end()
+})
+
+test('complex rules from examples: categories match', t => {
+	const rule = { if: [
+	   { and: [
+		{ nin: [{ get: 'adSlot.categories' }, 'Incentivized'] },
+		{ in: [{ get: 'adSlot.categories' }, 'Bitcoin'] }
+	   ] },
+	   { do: [
+	      { set: [ 'boost', 2 ] },
+	      { set: [ 'price.IMPRESSION', { mul: [{ get: 'price.IMPRESSION' }, 3] }] }
+	    ] }
+	] }
+
+	const evalWithInput = input => {
+		let output = { boost: 1, 'price.IMPRESSION': new BN(1005) }
+		evaluate(input, output, rule)
+		return output
+	}
+
+	t.deepEqual(evalWithInput({ 'adSlot.categories': ['Incentivized'] }), { boost: 1, 'price.IMPRESSION': new BN(1005) })
+	t.deepEqual(evalWithInput({ 'adSlot.categories': ['Incentivized', 'Bitcoin'] }), { boost: 1, 'price.IMPRESSION': new BN(1005) })
+	t.deepEqual(evalWithInput({ 'adSlot.categories': ['Bitcoin'] }), { boost: 2, 'price.IMPRESSION': new BN(3015) })
 	t.end()
 })
