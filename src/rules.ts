@@ -16,8 +16,7 @@ export function evaluate(input: any, output: any, rule: any) {
 	const evalToArray = x => assertType(evalRule(x), 'array')
 
 	// While this might look broadly similar to the eq implementation, it may change if we add support for more than 2 numbers
-	// @TODO types for the arguments
-	const evalWithNumbers = (numbers: Array<any>, onNumbers: any, onBNs: any) => {
+	const evalWithNumbers = (numbers: Array<any>, onNumbers: (a: number, b: number) => any, onBNs: (a: any, b: any) => any) => {
 		// @TODO consider handling passing in more than 2 numbers
 		// but this won't be applicable (or at least not intuitive to gte/gt/lt)
 		// except for Python people, cause they have chain comparison
@@ -148,7 +147,6 @@ export function evaluate(input: any, output: any, rule: any) {
 		)
 	// construct a bn
 	} else if (rule.hasOwnProperty('bn')) {
-		// @TODO: should we allow evalRule here?
 		return new BN(assertType(evalRule(rule.bn), 'string'))
 	// strings
 	} else if (rule.hasOwnProperty('split')) {
