@@ -167,7 +167,12 @@ export function evaluate(input: any, output: any, rule: any) {
 	// variables/memory storage
 	} else if (rule.hasOwnProperty('get')) {
 		assertType(rule.get, 'string')
-		if (input.hasOwnProperty(rule.get)) return input[rule.get]
+		if (typeof(input) === 'function') {
+			const value = input(rule.get)
+			if (value !== undefined) return value
+		} else {
+			if (input.hasOwnProperty(rule.get)) return input[rule.get]
+		}
 		if (output.hasOwnProperty(rule.get)) return output[rule.get]
 		throw new RuleEvalError({ message: `UndefinedVar: ${rule.get}`, undefinedVar: rule.get })
 	} else if (rule.hasOwnProperty('set')) {
