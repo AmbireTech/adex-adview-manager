@@ -9,8 +9,6 @@ const evalToOutput = x => {
 	return output
 }
 
-console.log(evaluate({}, {}, { ifElse: [{endsWith: ['foo', 'oo']}, 'cool and good', 'not'] }))
-
 /*console.log(evaluate({}, {}, 
 { if: [
    { eq: [{ get: 'publisherId' }, '0xd5860D6196A4900bf46617cEf088ee6E6b61C9d6'] },
@@ -108,6 +106,20 @@ test('math: BigNumber coercion', t => {
 test('can construct a BigNumber', t => {
 	const numStr = '165987120956145983587125'
 	t.deepEqual(evalPure({ bn: numStr }), new BN(numStr))
+	t.end()
+})
+
+// strings
+
+test('strings', t => {
+	t.equal(evalPure({ endsWith: ['foobar', 'ar'] }), true)
+	t.equal(evalPure({ endsWith: ['foobar', 'fo'] }), false)
+
+	t.equal(evalPure({ startsWith: ['foobar', 'ar'] }), false)
+	t.equal(evalPure({ startsWith: ['foobar', 'fo'] }), true)
+
+	t.equal(evalPure({ at: [{ split: ['one-two-three-four', '-'] }, 2] }), 'three')
+
 	t.end()
 })
 
