@@ -160,9 +160,11 @@ export class AdViewManager {
 			.filter(x => !(this.options.disableVideo && isVideo(x.unit)))
 			.sort((b, a) => new BN(a.price).cmp(new BN(b.price)))
 		const unit = unitsWithPrice[0] ? unitsWithPrice[0].unit : fallbackUnit
+		const price = unitsWithPrice[0] ? unitsWithPrice[0].price : '0'
 		if (!unit) return null
 		return {
 			unit,
+			price,
 			acceptedReferrers,
 			html: getUnitHTML(this.options, { unit }),
 		}
