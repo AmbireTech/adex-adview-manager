@@ -187,10 +187,15 @@ export function evaluate(input: any, output: any, rule: any) {
 	}
 }
 
-export function evalMultiple(input: any, output: any, rules: any) {
-	// @TODO: ignore UndefinedVar errors; or just take onError callback
+export function evaluateMultiple(input: any, output: any, rules: any, onTypeErr: any) {
 	for (const rule of rules) {
-		evaluate(input, output, rule)
+		try {
+			evaluate(input, output, rule)
+		} catch(e) {
+			if (e.isUndefinedVar) continue
+			else if (e.isTypeError && onTypeErr) onTypeErr(e, rule)
+			else throw e
+		}
 		// We stop executing if at any point the show is set to false
 		if (output.show === false) return output
 	}
