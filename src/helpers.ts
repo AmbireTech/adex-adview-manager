@@ -1,7 +1,7 @@
 import { BN } from 'bn.js'
 
 export function targetingInputGetter(base: any, campaign: any, unit: any, propName: string): any {
-	if (propName === 'adUnitId' && unit) return unit.ipfs
+	if (propName === 'adUnitId' && unit) return unit.id || unit.ipfs
 	if (propName === 'campaignId') return campaign.id
 	if (propName === 'advertiserId') return campaign.creator
 	if (propName === 'campaignBudget') return new BN(campaign.depositAmount)

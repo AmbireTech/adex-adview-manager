@@ -1,4 +1,6 @@
 import { BN } from 'bn.js'
+import { evaluate } from './rules'
+import { targetingInputGetter, getPricingBounds } from './helpers'
 
 export const IPFS_GATEWAY = 'https://ipfs.moonicorn.network/ipfs/'
 // @TODO unused
@@ -126,7 +128,34 @@ export class AdViewManager {
 	async getNextAdUnit(): Promise<any> {
 		const { campaigns, targetingInputBase, acceptedReferrers, fallbackUnit } = await this.getMarketDemandResp()
 		const unitsWithPrice = campaigns
-			.map(x => x.unitsWithPrice)
+			.map(campaign => {
+				const campaignInput = targetingInputGetter.bind(null, targetingInputBase, campaign)
+				return campaign.unitsWithPrice.filter(({ unit, price }) => {
+					console.log(unit)
+					const input = campaignInput.bind(null, unit)
+					const output = {
+						show: true,
+						'price.IMPRESSION': new BN(price),
+					}
+					for (const rule of campaign.targetingRules) {
+						try {
+							evaluate(input, output, rule)
+						} catch(e) {
+							// @TODO remove this
+							console.log(e)
+							if (e.isUndefinedVar) continue
+							else if (e.isTypeError) console.error(`WARNING: rule for ${campaign.id} failing with:`, e)
+							else throw e
+						}
+						// We stop executing if at any point the show is set to false
+						if (output.show === false) return false
+					}
+					// NOTE: not using the price from the output on purpose
+					// we trust what the server gives us since otherwise we may end up changing the price based on
+					// adView-specific variables, which won't be consistent with the validator's price
+					return true
+				})
+			})
 			.reduce((a, b) => a.concat(b), [])
 			.filter(x => !(this.options.disableVideo && isVideo(x.unit)))
 			.sort((b, a) => new BN(a.price).cmp(new BN(b.price)))
