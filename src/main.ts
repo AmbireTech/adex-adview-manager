@@ -40,7 +40,7 @@ interface Unit {
 interface HistoryEntry {
 	time: number,
 	unitId: string,
-	// campaignId: string,
+	campaignId: string,
 	slotId: string,
 }
 
@@ -163,7 +163,7 @@ export class AdViewManager {
 					// adView-specific variables, which won't be consistent with the validator's price
 					const onTypeErr = (e, rule) => console.error(`WARNING: rule for ${campaign.id} failing with:`, rule, e)
 					return evaluateMultiple(input, output, campaign.targetingRules, onTypeErr).show
-				})
+				}).map(x => ({ ...x, campaignId: campaign.id }))
 			})
 			.reduce((a, b) => a.concat(b), [])
 			.filter(x => !(this.options.disableVideo && isVideo(x.unit)))
@@ -172,20 +172,18 @@ export class AdViewManager {
 				|| randomizedSortPos(a.unit, seed).cmp(randomizedSortPos(b.unit, seed))
 			)
 
-		if (unitsWithPrice[0]) {
-			const unitId = unitsWithPrice[0].unit.id
+		const auctionWinner = unitsWithPrice[0]
+		if (auctionWinner) {
 			this.history.push({
 				time: Date.now(),
 				slotId: this.options.marketSlot,
-				unitId,
-				// @TODO campaignId
-				// campaignId: campaigns.find(c => c.unitsWithPrice.find(u => u.unit.id === unitId)).id,
+				unitId: auctionWinner.unit.id,
+				campaignId: auctionWinner.campaignId,
 			})
 			this.history = this.history.slice(-HISTORY_LIMIT)
 		}
-
-		const unit = unitsWithPrice[0] ? unitsWithPrice[0].unit : fallbackUnit
-		const price = unitsWithPrice[0] ? unitsWithPrice[0].price : '0'
+		const unit = auctionWinner ? auctionWinner.unit : fallbackUnit
+		const price = auctionWinner ? auctionWinner.price : '0'
 		if (!unit) return null
 		return {
 			unit,
