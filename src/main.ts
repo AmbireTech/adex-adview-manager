@@ -117,7 +117,7 @@ export class AdViewManager {
 	}
 	async getMarketDemandResp(): Promise<any> {
 		const marketURL = this.options.marketURL
-		const depositAsset = this.options.whitelistedTokens.length === 1 ? `&depositAsset=${this.options.whitelistedTokens[0]}` : ``
+		const depositAsset = this.options.whitelistedTokens.map(tokenAddr => `&depositAsset=${tokenAddr}`).join('')
 		const pubPrefix = this.options.publisherAddr.slice(2, 10)
 		const url = `${marketURL}/units-for-slot/${this.options.marketSlot}?pubPrefix=${pubPrefix}${depositAsset}`
 		return this.fetch(url).then(r => r.json())
