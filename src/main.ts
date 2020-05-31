@@ -8,7 +8,7 @@ export const IPFS_GATEWAY = 'https://ipfs.moonicorn.network/ipfs/'
 // Related: https://github.com/AdExNetwork/adex-adview-manager/issues/17, https://github.com/AdExNetwork/adex-adview-manager/issues/35, https://github.com/AdExNetwork/adex-adview-manager/issues/46
 const WAIT_FOR_IMPRESSION = 8000
 
-// const HISTORY_LIMIT = 100
+const HISTORY_LIMIT = 100
 
 const defaultOpts = {
 	marketURL: 'https://market.moonicorn.network',
@@ -40,7 +40,7 @@ interface Unit {
 interface HistoryEntry {
 	time: number,
 	unitId: string,
-	campaignId: string,
+	// campaignId: string,
 	slotId: string,
 }
 
@@ -105,8 +105,7 @@ function getUnitHTML({ width, height }: AdViewManagerOptions, { unit, onLoadCode
 }
 
 export function getHTML(options: AdViewManagerOptions, { unit, channelId, validators }): string {
-	const adSlotCode = options.marketSlot ? `, adSlot: '${options.marketSlot}'` : ''
-	const getBody = (evType) => `JSON.stringify({ events: [{ type: '${evType}', publisher: '${options.publisherAddr}', adUnit: '${unit.id}', ref: document.referrer${adSlotCode} }] })`
+	const getBody = (evType) => `JSON.stringify({ events: [{ type: '${evType}', publisher: '${options.publisherAddr}', adUnit: '${unit.id}', adSlot: '${options.marketSlot}', ref: document.referrer }] })`
 	const getFetchCode = (evType) => `var fetchOpts = { method: 'POST', headers: { 'content-type': 'application/json' }, body: ${getBody(evType)} };` + validators
 		.map(({ url }) => {
 			const fetchUrl = `${url}/channel/${channelId}/events?pubAddr=${options.publisherAddr}`
@@ -125,6 +124,8 @@ export class AdViewManager {
 		this.fetch = fetch
 		this.options = { ...defaultOpts, ...opts }
 		this.history = history
+		// There's no check for the other properties, but we can actually function without most of them since there's defaults
+		if (!(this.options.marketSlot && this.options.publisherAddr)) throw new Error('marketSlot and publisherAddr options required')
 	}
 	async getMarketDemandResp(): Promise<any> {
 		const marketURL = this.options.marketURL
@@ -135,6 +136,10 @@ export class AdViewManager {
 	}
 	async getNextAdUnit(): Promise<any> {
 		const { campaigns, targetingInputBase, acceptedReferrers, fallbackUnit } = await this.getMarketDemandResp()
+
+		// Manage history and stickiness
+		// Stickiness is when we keep showing an ad unit for a slot for some time in order to achieve fair impression value
+		// see https://github.com/AdExNetwork/adex-adview-manager/issues/65
 
 		// If two units result in the same price, apply random selection between them: this is why we need the seed
 		const seed = new BN(Math.random() * (0x80000000 - 1))
@@ -166,6 +171,19 @@ export class AdViewManager {
 				new BN(a.price).cmp(new BN(b.price))
 				|| randomizedSortPos(a.unit, seed).cmp(randomizedSortPos(b.unit, seed))
 			)
+
+		if (unitsWithPrice[0]) {
+			const unitId = unitsWithPrice[0].unit.id
+			this.history.push({
+				time: Date.now(),
+				slotId: this.options.marketSlot,
+				unitId,
+				// @TODO campaignId
+				// campaignId: campaigns.find(c => c.unitsWithPrice.find(u => u.unit.id === unitId)).id,
+			})
+			this.history = this.history.slice(-HISTORY_LIMIT)
+		}
+
 		const unit = unitsWithPrice[0] ? unitsWithPrice[0].unit : fallbackUnit
 		const price = unitsWithPrice[0] ? unitsWithPrice[0].price : '0'
 		if (!unit) return null
