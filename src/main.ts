@@ -7,8 +7,11 @@ export const IPFS_GATEWAY = 'https://ipfs.moonicorn.network/ipfs/'
 // How much time to wait before sending out an impression event
 // Related: https://github.com/AdExNetwork/adex-adview-manager/issues/17, https://github.com/AdExNetwork/adex-adview-manager/issues/35, https://github.com/AdExNetwork/adex-adview-manager/issues/46
 const WAIT_FOR_IMPRESSION = 8000
-
+// The number of impressions (won auctions) kept in history
 const HISTORY_LIMIT = 50
+// Impression "stickiness" time: see https://github.com/AdExNetwork/adex-adview-manager/issues/65
+// 4 minutes allows ~4 campaigns to rotate, considering a default frequency cap of 15 minutes
+const IMPRESSION_STICKINESS_TIME = 240000
 
 const defaultOpts = {
 	marketURL: 'https://market.moonicorn.network',
@@ -26,9 +29,9 @@ interface AdViewManagerOptions {
 	whitelistedTokens?: Array<string>,
 	width?: number,
 	height?: number,
+	navigatorLanguage?: string,
 	disableVideo?: boolean,
 	disableSticky?: boolean,
-	navigatorLanguage?: string,
 }
 
 interface Unit {
@@ -138,6 +141,25 @@ export class AdViewManager {
 				: Infinity
 		}
 	}
+	private getStickyAdUnit(campaigns: any, acceptedReferrers: any): any {
+		const time = Date.now()
+		const stickinessThreshold = time - IMPRESSION_STICKINESS_TIME
+		const stickyEntry = this.history.find(entry => entry.slotId === this.options.marketSlot && entry.time > stickinessThreshold)
+		if (stickyEntry && !this.options.disableSticky) {
+			const stickyCampaign = campaigns.find(campaign => campaign.id === stickyEntry.campaignId)
+			if (stickyCampaign) {
+				const stickyUnit = stickyCampaign.unitsWithPrice.find(x => x.unit.id === stickyEntry.unitId).unit
+				return {
+					unit: stickyUnit,
+					price: '0',
+					acceptedReferrers,
+					html: getUnitHTML(this.options, { unit: stickyUnit }),
+					isSticky: true
+				}
+			}
+		}
+		return null
+	}
 	async getMarketDemandResp(): Promise<any> {
 		const marketURL = this.options.marketURL
 		const depositAsset = this.options.whitelistedTokens.map(tokenAddr => `&depositAsset=${tokenAddr}`).join('')
@@ -150,7 +172,8 @@ export class AdViewManager {
 
 		// Stickiness is when we keep showing an ad unit for a slot for some time in order to achieve fair impression value
 		// see https://github.com/AdExNetwork/adex-adview-manager/issues/65
-		//this.history.filter(({ slotId, time }) => slotId === this.options.marketSlot && )
+		const stickyResult = this.getStickyAdUnit(campaigns, acceptedReferrers)
+		if (stickyResult) return stickyResult
 
 		// If two or more units result in the same price, apply random selection between them: this is why we need the seed
 		const seed = new BN(Math.random() * (0x80000000 - 1))
