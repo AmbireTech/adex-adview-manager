@@ -128,6 +128,16 @@ export class AdViewManager {
 		// There's no check for the other properties, but we can actually function without most of them since there's defaults
 		if (!(this.options.marketSlot && this.options.publisherAddr)) throw new Error('marketSlot and publisherAddr options required')
 	}
+	private getTargetingInput(targetingInputBase: any, campaign: any): any {
+		const lastImpression = this.history.reverse().find(({ campaignId }) => campaignId === campaign.id)
+		return  {
+			...targetingInputBase,
+			'adView.navigatorLanguage': this.options.navigatorLanguage,
+			'adView.secondsSinceCampaignImpression': lastImpression
+				? Math.floor((Date.now() - lastImpression.time) / 1000)
+				: Infinity
+		}
+	}
 	async getMarketDemandResp(): Promise<any> {
 		const marketURL = this.options.marketURL
 		const depositAsset = this.options.whitelistedTokens.map(tokenAddr => `&depositAsset=${tokenAddr}`).join('')
@@ -138,21 +148,17 @@ export class AdViewManager {
 	async getNextAdUnit(): Promise<any> {
 		const { campaigns, targetingInputBase, acceptedReferrers, fallbackUnit } = await this.getMarketDemandResp()
 
-		// Manage history and stickiness
 		// Stickiness is when we keep showing an ad unit for a slot for some time in order to achieve fair impression value
 		// see https://github.com/AdExNetwork/adex-adview-manager/issues/65
+		//this.history.filter(({ slotId, time }) => slotId === this.options.marketSlot && )
 
 		// If two or more units result in the same price, apply random selection between them: this is why we need the seed
 		const seed = new BN(Math.random() * (0x80000000 - 1))
 
 		// Apply targeting, now with adView.* variables, and sort the resulting ad units
-		const targetingInput = {
-			...targetingInputBase,
-			'adView.navigatorLanguage': this.options.navigatorLanguage
-		}
 		const unitsWithPrice = campaigns
 			.map(campaign => {
-				const campaignInput = targetingInputGetter.bind(null, targetingInput, campaign)
+				const campaignInput = targetingInputGetter.bind(null, this.getTargetingInput(targetingInputBase, campaign), campaign)
 				return campaign.unitsWithPrice.filter(({ unit, price }) => {
 					const input = campaignInput.bind(null, unit)
 					const output = {
@@ -173,6 +179,7 @@ export class AdViewManager {
 				|| randomizedSortPos(a.unit, seed).cmp(randomizedSortPos(b.unit, seed))
 			)
 
+		// Update history
 		const auctionWinner = unitsWithPrice[0]
 		if (auctionWinner) {
 			this.history.push({
@@ -183,6 +190,8 @@ export class AdViewManager {
 			})
 			this.history = this.history.slice(-HISTORY_LIMIT)
 		}
+
+		// Return the results, with a fallback unit if there is such
 		const unit = auctionWinner ? auctionWinner.unit : fallbackUnit
 		const price = auctionWinner ? auctionWinner.price : '0'
 		if (!unit) return null

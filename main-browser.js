@@ -31,6 +31,8 @@ function initWithOptions(options) {
 		return
 	}
 
+	// Apply auctions limit
+	// This is done to stop abuse from publishers with multiple ads on the page
 	const historyKey = `history_${options.publisherAddr}`
 	const history = safeJSONParse(localStorage[historyKey], [])
 	const now = Date.now()
