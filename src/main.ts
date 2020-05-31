@@ -8,7 +8,7 @@ export const IPFS_GATEWAY = 'https://ipfs.moonicorn.network/ipfs/'
 // Related: https://github.com/AdExNetwork/adex-adview-manager/issues/17, https://github.com/AdExNetwork/adex-adview-manager/issues/35, https://github.com/AdExNetwork/adex-adview-manager/issues/46
 const WAIT_FOR_IMPRESSION = 8000
 
-const HISTORY_LIMIT = 100
+const HISTORY_LIMIT = 50
 
 const defaultOpts = {
 	marketURL: 'https://market.moonicorn.network',
