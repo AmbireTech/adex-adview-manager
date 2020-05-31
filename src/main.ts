@@ -73,6 +73,13 @@ function isVideo(unit: Unit): boolean {
 	return (unit.mediaMime || '').split('/')[0] === 'video'
 }
 
+function randomizedSortPos(unit: Unit, seed: BN): BN {
+	// using base32 is technically wrong (IDs are in base 58), but it works well enough for this purpose
+	// kind of a LCG PRNG but without the state; using GCC's constraints as seen on stack overflow
+	// takes around ~700ms for 100k iterations, yields very decent distribution (e.g. 724ms 50070, 728ms 49936)
+	return new BN(unit.id, 32).mul(seed).add(new BN(12345)).mod(new BN(0x80000000))
+}
+
 function getUnitHTML({ width, height }: AdViewManagerOptions, { unit, onLoadCode = '', onClickCode = '' }): string {
 	const imgUrl = normalizeUrl(unit.mediaUrl)
 	const size = 'width=100%'
@@ -124,6 +131,8 @@ export class AdViewManager {
 	}
 	async getNextAdUnit(): Promise<any> {
 		const { campaigns, targetingInputBase, acceptedReferrers, fallbackUnit } = await this.getMarketDemandResp()
+		// If two units result in the same price, apply random selection between them: this is why we need the seed
+		const seed = new BN(Math.random() * (0x80000000 - 1))
 		const unitsWithPrice = campaigns
 			.map(campaign => {
 				const campaignInput = targetingInputGetter.bind(null, targetingInputBase, campaign)
@@ -142,7 +151,10 @@ export class AdViewManager {
 			})
 			.reduce((a, b) => a.concat(b), [])
 			.filter(x => !(this.options.disableVideo && isVideo(x.unit)))
-			.sort((b, a) => new BN(a.price).cmp(new BN(b.price)))
+			.sort((b, a) =>
+				new BN(a.price).cmp(new BN(b.price))
+				|| randomizedSortPos(a.unit, seed).cmp(randomizedSortPos(b.unit, seed))
+			)
 		const unit = unitsWithPrice[0] ? unitsWithPrice[0].unit : fallbackUnit
 		const price = unitsWithPrice[0] ? unitsWithPrice[0].price : '0'
 		if (!unit) return null
