@@ -108,11 +108,11 @@ function getUnitHTML({ width, height }: AdViewManagerOptions, { unit, onLoadCode
 		+ `</div>`
 }
 
-export function getHTML(options: AdViewManagerOptions, { unit, channelId, validators }): string {
+export function getUnitHTMLWithEvents(options: AdViewManagerOptions, { unit, campaignId, validators }): string {
 	const getBody = (evType) => `JSON.stringify({ events: [{ type: '${evType}', publisher: '${options.publisherAddr}', adUnit: '${unit.id}', adSlot: '${options.marketSlot}', ref: document.referrer }] })`
 	const getFetchCode = (evType) => `var fetchOpts = { method: 'POST', headers: { 'content-type': 'application/json' }, body: ${getBody(evType)} };` + validators
 		.map(({ url }) => {
-			const fetchUrl = `${url}/channel/${channelId}/events?pubAddr=${options.publisherAddr}`
+			const fetchUrl = `${url}/channel/${campaignId}/events?pubAddr=${options.publisherAddr}`
 			return `fetch('${fetchUrl}',fetchOpts)`
 		})
 		.join(';')
@@ -170,7 +170,8 @@ export class AdViewManager {
 		const depositAsset = this.options.whitelistedTokens.map(tokenAddr => `&depositAsset=${tokenAddr}`).join('')
 		const pubPrefix = this.options.publisherAddr.slice(2, 10)
 		const url = `${marketURL}/units-for-slot/${this.options.marketSlot}?pubPrefix=${pubPrefix}${depositAsset}`
-		return this.fetch(url).then(r => r.json())
+		const r = await this.fetch(url)
+		return r.json()
 	}
 	async getNextAdUnit(): Promise<any> {
 		const { campaigns, targetingInputBase, acceptedReferrers, fallbackUnit } = await this.getMarketDemandResp()
@@ -222,12 +223,14 @@ export class AdViewManager {
 		// Return the results, with a fallback unit if there is such
 		const unit = auctionWinner ? auctionWinner.unit : fallbackUnit
 		const price = auctionWinner ? auctionWinner.price : '0'
+		const html = auctionWinner
+			? getUnitHTMLWithEvents(this.options, {
+				unit,
+				campaignId: auctionWinner.campaignId,
+				validators: campaigns.find(x => x.id === auctionWinner.campaignId).spec.validators
+			})
+			: getUnitHTML(this.options, { unit })
 		if (!unit) return null
-		return {
-			unit,
-			price,
-			acceptedReferrers,
-			html: getUnitHTML(this.options, { unit }),
-		}
+		return { unit, price, acceptedReferrers, html }
 	}
 }
