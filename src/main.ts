@@ -8,6 +8,8 @@ export const IPFS_GATEWAY = 'https://ipfs.moonicorn.network/ipfs/'
 // Related: https://github.com/AdExNetwork/adex-adview-manager/issues/17, https://github.com/AdExNetwork/adex-adview-manager/issues/35, https://github.com/AdExNetwork/adex-adview-manager/issues/46
 const WAIT_FOR_IMPRESSION = 8000
 
+const HISTORY_LIMIT = 100
+
 const defaultOpts = {
 	marketURL: 'https://market.moonicorn.network',
 	whitelistedTokens: ['0x6B175474E89094C44Da98b954EedeAC495271d0F'],
@@ -32,7 +34,14 @@ interface Unit {
 	id: string,
 	mediaUrl: string,
 	mediaMime: string,
-	targetUrl: string
+	targetUrl: string,
+}
+
+interface HistoryEntry {
+	time: number,
+	unitId: string,
+	campaignId: string,
+	slotId: string,
 }
 
 export function normalizeUrl(url: string): string {
@@ -105,22 +114,17 @@ export function getHTML(options: AdViewManagerOptions, { unit, channelId, valida
 		})
 		.join(';')
 	const getTimeoutCode = (evType) => `setTimeout(function() {${getFetchCode(evType)}}, ${WAIT_FOR_IMPRESSION})`
-
 	return getUnitHTML(options, { unit, onLoadCode: getTimeoutCode('IMPRESSION'), onClickCode: getFetchCode('CLICK') })
 }
 
 export class AdViewManager {
 	private fetch: any
 	private options: AdViewManagerOptions
-	private timesShown: { [key: string]: number }
-	private getTimesShown(channelId: string): number {
-		return this.timesShown[channelId] || 0
-	}
-	constructor(fetch, opts: AdViewManagerOptions) {
+	public history: HistoryEntry[]
+	constructor(fetch, opts: AdViewManagerOptions, history: HistoryEntry[] = []) {
 		this.fetch = fetch
 		this.options = { ...defaultOpts, ...opts }
-		// @TODO unused
-		this.timesShown = {}
+		this.history = history
 	}
 	async getMarketDemandResp(): Promise<any> {
 		const marketURL = this.options.marketURL
@@ -131,8 +135,11 @@ export class AdViewManager {
 	}
 	async getNextAdUnit(): Promise<any> {
 		const { campaigns, targetingInputBase, acceptedReferrers, fallbackUnit } = await this.getMarketDemandResp()
+
 		// If two units result in the same price, apply random selection between them: this is why we need the seed
 		const seed = new BN(Math.random() * (0x80000000 - 1))
+
+		// Apply targeting, now with adView.* variables, and sort the resulting ad units
 		const unitsWithPrice = campaigns
 			.map(campaign => {
 				const campaignInput = targetingInputGetter.bind(null, targetingInputBase, campaign)
