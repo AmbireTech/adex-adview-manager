@@ -221,16 +221,23 @@ export class AdViewManager {
 		}
 
 		// Return the results, with a fallback unit if there is such
-		const unit = auctionWinner ? auctionWinner.unit : fallbackUnit
-		const price = auctionWinner ? auctionWinner.price : '0'
-		const html = auctionWinner
-			? getUnitHTMLWithEvents(this.options, {
+		if (auctionWinner) {
+			const { unit, price, campaignId } = auctionWinner
+			const { validators } = campaigns.find(x => x.id === campaignId).spec
+			return {
 				unit,
-				campaignId: auctionWinner.campaignId,
-				validators: campaigns.find(x => x.id === auctionWinner.campaignId).spec.validators
-			})
-			: getUnitHTML(this.options, { unit })
-		if (!unit) return null
-		return { unit, price, acceptedReferrers, html }
+				price,
+				acceptedReferrers,
+				html: getUnitHTMLWithEvents(this.options, { unit, campaignId, validators })
+			}
+		} else {
+			const unit = fallbackUnit
+			return {
+				unit,
+				price: '0',
+				acceptedReferrers,
+				html: getUnitHTML(this.options, { unit })
+			}
+		}
 	}
 }
