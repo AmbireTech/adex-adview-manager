@@ -1,8 +1,10 @@
 const { AdViewManager } = require('./lib/main')
 
-// limiting to 2 views per last 10 seconds
-const MAX_VIEWS_CAP = { timeframe: 10000, limit: 2 }
+// limiting to 2 ad auctions per last 10 seconds
+const MAX_AUCTIONS_CAP = { timeframe: 10000, limit: 2 }
 
+// Usually this is not a good tradeoff ("fail-fast") but when it comes to ad impressions,
+// we'd rather not lose the impression in case of a corrupted JSON
 function safeJSONParse(json, defaultVal) {
 	if (!json) return defaultVal
 	try {
@@ -19,22 +21,24 @@ function collapse() {
 }
 
 function initWithOptions(options) {
+	// emergency fix
+	if (options.publisher) options.publisherAddr = options.publisher;
+	// end of emergency fix
+
 	// basic headless detection
 	if (navigator.webdriver || !(Array.isArray(navigator.languages) && navigator.languages.length)) {
 		collapse()
 		return
 	}
 
+	const historyKey = `history_${options.publisherAddr}`
+	const history = safeJSONParse(localStorage[historyKey], [])
 	const now = Date.now()
-	let views = safeJSONParse(localStorage.views, [])
-	views = views.filter(x => now-x < MAX_VIEWS_CAP.timeframe)
-	if (views.length >= MAX_VIEWS_CAP.limit) {
-		console.log('AdEx: ads per page limit exceeded')
+	if (history.filter(({ time }) => now-time < MAX_AUCTIONS_CAP.timeframe).length >= MAX_AUCTIONS_CAP.limit) {
+		console.log('AdEx: ad auctions limit exceeded')
 		collapse()
 		return
 	}
-	views.push(now)
-	localStorage.views = JSON.stringify(views)
 
 	/*if (window.innerWidth < options.width / 2 || window.innerHeight < options.height / 2) {
 		console.log('AdEx: size too small')
@@ -42,13 +46,7 @@ function initWithOptions(options) {
 		return
 	}*/
 
-	// emergency fix
-	if (options.publisher) options.publisherAddr = options.publisher;
-	// end of emergency fix
-
 	// construct the AdView manager with existing history, select the next ad unit, display it
-	const historyKey = `history_${options.publisherAddr}`
-	const history = safeJSONParse(localStorage[historyKey], [])
 	const mgr = new AdViewManager((url, o) => fetch(url, o), options, history)
 	mgr.getNextAdUnit().then(u => {
 		if (Array.isArray(u.acceptedReferrers)
