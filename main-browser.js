@@ -1,4 +1,7 @@
-const { AdViewManager, normalizeUrl } = require('./lib/main')
+const { AdViewManager } = require('./lib/main')
+
+// limiting to 2 views per last 10 seconds
+const MAX_VIEWS_CAP = { timeframe: 10000, limit: 2 }
 
 function initWithOptions(options) {
 	function collapse() {
@@ -12,12 +15,10 @@ function initWithOptions(options) {
 		return
 	}
 
-	// limiting to 2 impression auctions per last 10 seconds
-	const MAX_AUCTIONS_CAP = { timeframe: 10000, limit: 2 }
 	const now = Date.now()
 	let views = JSON.parse(localStorage.views || '[]')
-	views = views.filter(x => now-x < MAX_AUCTIONS_CAP.timeframe)
-	if (views.length >= MAX_AUCTIONS_CAP.limit) {
+	views = views.filter(x => now-x < MAX_VIEWS_CAP.timeframe)
+	if (views.length >= MAX_VIEWS_CAP.limit) {
 		console.log('AdEx: ads per page limit exceeded')
 		collapse()
 		return
