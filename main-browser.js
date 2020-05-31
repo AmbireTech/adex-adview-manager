@@ -12,13 +12,12 @@ function initWithOptions(options) {
 		return
 	}
 
-	// limiting to 2 per last 10 seconds
-	const RECENT_TIME = 10000
-	const RECENT_LIMIT = 2
+	// limiting to 2 impression auctions per last 10 seconds
+	const MAX_AUCTIONS_CAP = { timeframe: 10000, limit: 2 }
 	const now = Date.now()
 	let views = JSON.parse(localStorage.views || '[]')
-	views = views.filter(x => now-x < RECENT_TIME)
-	if (views.length >= RECENT_LIMIT) {
+	views = views.filter(x => now-x < MAX_AUCTIONS_CAP.timeframe)
+	if (views.length >= MAX_AUCTIONS_CAP.limit) {
 		console.log('AdEx: ads per page limit exceeded')
 		collapse()
 		return
