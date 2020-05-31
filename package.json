@@ -30,10 +30,10 @@
   },
   "homepage": "https://github.com/AdExNetwork/adex-adview-manager#readme",
   "dependencies": {
-    "bn.js": "^4.11.8",
-    "gh-pages": "^2.0.1"
+    "bn.js": "^4.11.8"
   },
   "devDependencies": {
+    "gh-pages": "^2.0.1",
     "@types/tape": "^4.2.33",
     "html-webpack-plugin": "^4.0.0-beta.5",
     "jsdom": "^15.1.1",
