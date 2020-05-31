@@ -142,18 +142,23 @@ export class AdViewManager {
 		}
 	}
 	private getStickyAdUnit(campaigns: any, acceptedReferrers: any): any {
+		if (this.options.disableSticky) return null
+
 		const time = Date.now()
 		const stickinessThreshold = time - IMPRESSION_STICKINESS_TIME
-		const stickyEntry = this.history.find(entry => entry.slotId === this.options.marketSlot && entry.time > stickinessThreshold)
-		if (stickyEntry && !this.options.disableSticky) {
+		const stickyEntry = this.history.find(entry =>
+			entry.slotId === this.options.marketSlot
+				&& entry.time > stickinessThreshold
+		)
+		if (stickyEntry) {
 			const stickyCampaign = campaigns.find(campaign => campaign.id === stickyEntry.campaignId)
 			if (stickyCampaign) {
-				const stickyUnit = stickyCampaign.unitsWithPrice.find(x => x.unit.id === stickyEntry.unitId).unit
+				const { unit } = stickyCampaign.unitsWithPrice.find(x => x.unit.id === stickyEntry.unitId)
 				return {
-					unit: stickyUnit,
+					unit,
 					price: '0',
 					acceptedReferrers,
-					html: getUnitHTML(this.options, { unit: stickyUnit }),
+					html: getUnitHTML(this.options, { unit }),
 					isSticky: true
 				}
 			}
