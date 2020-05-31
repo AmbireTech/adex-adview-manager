@@ -1,4 +1,4 @@
-import { evaluate, evalMultiple, RuleEvalError } from '../src/rules'
+import { evaluate, RuleEvalError } from '../src/rules'
 import * as test from 'tape'
 import { BN } from 'bn.js'
 
