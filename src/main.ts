@@ -187,7 +187,8 @@ export class AdViewManager {
 		// Apply targeting, now with adView.* variables, and sort the resulting ad units
 		const unitsWithPrice = campaigns
 			.map(campaign => {
-				const campaignInput = targetingInputGetter.bind(null, this.getTargetingInput(targetingInputBase, campaign), campaign)
+				const campaignInputBase = this.getTargetingInput(targetingInputBase, campaign)
+				const campaignInput = targetingInputGetter.bind(null, campaignInputBase, campaign)
 				return campaign.unitsWithPrice.filter(({ unit, price }) => {
 					const input = campaignInput.bind(null, unit)
 					const output = {
@@ -205,7 +206,7 @@ export class AdViewManager {
 			.filter(x => !(this.options.disableVideo && isVideo(x.unit)))
 			.sort((b, a) =>
 				new BN(a.price).cmp(new BN(b.price))
-				|| randomizedSortPos(a.unit, seed).cmp(randomizedSortPos(b.unit, seed))
+					|| randomizedSortPos(a.unit, seed).cmp(randomizedSortPos(b.unit, seed))
 			)
 
 		// Update history
@@ -220,7 +221,7 @@ export class AdViewManager {
 			this.history = this.history.slice(-HISTORY_LIMIT)
 		}
 
-		// Return the results, with a fallback unit if there is such
+		// Return the results, with a fallback unit if there is one
 		if (auctionWinner) {
 			const { unit, price, campaignId } = auctionWinner
 			const { validators } = campaigns.find(x => x.id === campaignId).spec
