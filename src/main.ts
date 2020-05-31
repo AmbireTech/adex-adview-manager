@@ -1,6 +1,6 @@
 import { BN } from 'bn.js'
 import { evaluateMultiple } from './rules'
-import { targetingInputGetter, getPricingBounds } from './helpers'
+import { targetingInputGetter } from './helpers'
 
 export const IPFS_GATEWAY = 'https://ipfs.moonicorn.network/ipfs/'
 
@@ -8,7 +8,7 @@ export const IPFS_GATEWAY = 'https://ipfs.moonicorn.network/ipfs/'
 // Related: https://github.com/AdExNetwork/adex-adview-manager/issues/17, https://github.com/AdExNetwork/adex-adview-manager/issues/35, https://github.com/AdExNetwork/adex-adview-manager/issues/46
 const WAIT_FOR_IMPRESSION = 8000
 
-const HISTORY_LIMIT = 100
+//const HISTORY_LIMIT = 100
 
 const defaultOpts = {
 	marketURL: 'https://market.moonicorn.network',
@@ -16,7 +16,6 @@ const defaultOpts = {
 	disableVideo: false,
 }
 
-type BigNumStr = string
 interface AdViewManagerOptions {
 	// Defaulted via defaultOpts
 	marketURL: string,
@@ -140,9 +139,13 @@ export class AdViewManager {
 		const seed = new BN(Math.random() * (0x80000000 - 1))
 
 		// Apply targeting, now with adView.* variables, and sort the resulting ad units
+		const targetingInput = {
+			...targetingInputBase,
+			// @TODO
+		}
 		const unitsWithPrice = campaigns
 			.map(campaign => {
-				const campaignInput = targetingInputGetter.bind(null, targetingInputBase, campaign)
+				const campaignInput = targetingInputGetter.bind(null, targetingInput, campaign)
 				return campaign.unitsWithPrice.filter(({ unit, price }) => {
 					const input = campaignInput.bind(null, unit)
 					const output = {
