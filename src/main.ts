@@ -3,8 +3,6 @@ import { evaluateMultiple } from './rules'
 import { targetingInputGetter, getPricingBounds } from './helpers'
 
 export const IPFS_GATEWAY = 'https://ipfs.moonicorn.network/ipfs/'
-// @TODO unused
-export const GLOBAL_MIN_PER_IMPRESSION = new BN('20000000000000')
 
 // How much time to wait before sending out an impression event
 // Related: https://github.com/AdExNetwork/adex-adview-manager/issues/17, https://github.com/AdExNetwork/adex-adview-manager/issues/35, https://github.com/AdExNetwork/adex-adview-manager/issues/46
@@ -118,8 +116,7 @@ export class AdViewManager {
 		this.timesShown = {}
 	}
 	async getMarketDemandResp(): Promise<any> {
-		// @TODO remove dev mode (localhost)
-		const marketURL = 'http://localhost:3012' || this.options.marketURL
+		const marketURL = this.options.marketURL
 		const depositAsset = this.options.whitelistedTokens.length === 1 ? `&depositAsset=${this.options.whitelistedTokens[0]}` : ``
 		const pubPrefix = this.options.publisherAddr.slice(2, 10)
 		const url = `${marketURL}/units-for-slot/${this.options.marketSlot}?pubPrefix=${pubPrefix}${depositAsset}`
