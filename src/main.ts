@@ -19,15 +19,16 @@ const defaultOpts = {
 interface AdViewManagerOptions {
 	// Defaulted via defaultOpts
 	marketURL: string,
-	marketSlot: string,
 	// Must be passed (except the ones with ?)
+	marketSlot: string,
 	publisherAddr: string,
 	// All passed tokens must be of the same price and decimals, so that the amounts can be accurately compared
 	whitelistedTokens?: Array<string>,
 	width?: number,
 	height?: number,
 	disableVideo?: boolean,
-	disableSticky?: boolean
+	disableSticky?: boolean,
+	navigatorLanguage?: string,
 }
 
 interface Unit {
@@ -141,13 +142,13 @@ export class AdViewManager {
 		// Stickiness is when we keep showing an ad unit for a slot for some time in order to achieve fair impression value
 		// see https://github.com/AdExNetwork/adex-adview-manager/issues/65
 
-		// If two units result in the same price, apply random selection between them: this is why we need the seed
+		// If two or more units result in the same price, apply random selection between them: this is why we need the seed
 		const seed = new BN(Math.random() * (0x80000000 - 1))
 
 		// Apply targeting, now with adView.* variables, and sort the resulting ad units
 		const targetingInput = {
 			...targetingInputBase,
-			// @TODO
+			'adView.navigatorLanguage': this.options.navigatorLanguage
 		}
 		const unitsWithPrice = campaigns
 			.map(campaign => {

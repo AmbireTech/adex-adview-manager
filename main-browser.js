@@ -46,6 +46,9 @@ function initWithOptions(options) {
 		return
 	}*/
 
+	// Needed to sat targeting var adView.navigatorLanguage
+	options.navigatorLanguage = navigator.language
+
 	// construct the AdView manager with existing history, select the next ad unit, display it
 	const mgr = new AdViewManager((url, o) => fetch(url, o), options, history)
 	mgr.getNextAdUnit().then(u => {
