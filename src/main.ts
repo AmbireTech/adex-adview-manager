@@ -144,11 +144,10 @@ export class AdViewManager {
 	private getStickyAdUnit(campaigns: any, acceptedReferrers: any): any {
 		if (this.options.disableSticky) return null
 
-		const time = Date.now()
-		const stickinessThreshold = time - IMPRESSION_STICKINESS_TIME
+		const stickinessThreshold = Date.now() - IMPRESSION_STICKINESS_TIME
 		const stickyEntry = this.history.find(entry =>
-			entry.slotId === this.options.marketSlot
-				&& entry.time > stickinessThreshold
+			entry.time > stickinessThreshold
+				&& entry.slotId === this.options.marketSlot
 		)
 		if (stickyEntry) {
 			const stickyCampaign = campaigns.find(campaign => campaign.id === stickyEntry.campaignId)
@@ -164,6 +163,11 @@ export class AdViewManager {
 			}
 		}
 		return null
+	}
+	private isCampaignSticky(campaign: any): boolean {
+		if (this.options.disableSticky) return false
+		const stickinessThreshold = Date.now() - IMPRESSION_STICKINESS_TIME
+		return !!this.history.find(entry => entry.time > stickinessThreshold && entry.campaignId === campaign.id)
 	}
 	async getMarketDemandResp(): Promise<any> {
 		const marketURL = this.options.marketURL
@@ -187,6 +191,8 @@ export class AdViewManager {
 		// Apply targeting, now with adView.* variables, and sort the resulting ad units
 		const unitsWithPrice = campaigns
 			.map(campaign => {
+				if (this.isCampaignSticky(campaign)) return []
+
 				const campaignInputBase = this.getTargetingInput(targetingInputBase, campaign)
 				const campaignInput = targetingInputGetter.bind(null, campaignInputBase, campaign)
 				return campaign.unitsWithPrice.filter(({ unit, price }) => {
