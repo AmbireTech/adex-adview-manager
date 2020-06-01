@@ -151,15 +151,16 @@ export class AdViewManager {
 		)
 		if (stickyEntry) {
 			const stickyCampaign = campaigns.find(campaign => campaign.id === stickyEntry.campaignId)
-			if (stickyCampaign) {
-				const { unit } = stickyCampaign.unitsWithPrice.find(x => x.unit.id === stickyEntry.unitId)
-				return {
-					unit,
-					price: '0',
-					acceptedReferrers,
-					html: getUnitHTML(this.options, { unit }),
-					isSticky: true
-				}
+			// Campaign couldn't be found, it means it's no longer active (either expired or unsound)
+			// in both cases, we don't want to be showing it
+			if (!stickyCampaign) return null
+			const { unit } = stickyCampaign.unitsWithPrice.find(x => x.unit.id === stickyEntry.unitId)
+			return {
+				unit,
+				price: '0',
+				acceptedReferrers,
+				html: getUnitHTML(this.options, { unit }),
+				isSticky: true
 			}
 		}
 		return null
