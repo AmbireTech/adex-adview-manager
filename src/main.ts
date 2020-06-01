@@ -175,6 +175,7 @@ export class AdViewManager {
 		const pubPrefix = this.options.publisherAddr.slice(2, 10)
 		const url = `${marketURL}/units-for-slot/${this.options.marketSlot}?pubPrefix=${pubPrefix}${depositAsset}`
 		const r = await this.fetch(url)
+		if (r.status !== 200) throw new Error(`market returned status code ${r.status} at ${url}`)
 		return r.json()
 	}
 	async getNextAdUnit(): Promise<any> {
