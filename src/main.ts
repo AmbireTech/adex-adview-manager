@@ -1,122 +1,51 @@
 import { BN } from 'bn.js'
+import { evaluateMultiple } from './rules'
+import { targetingInputGetter } from './helpers'
 
 export const IPFS_GATEWAY = 'https://ipfs.moonicorn.network/ipfs/'
-export const GLOBAL_MIN_PER_IMPRESSION = new BN('20000000000000')
 
 // How much time to wait before sending out an impression event
 // Related: https://github.com/AdExNetwork/adex-adview-manager/issues/17, https://github.com/AdExNetwork/adex-adview-manager/issues/35, https://github.com/AdExNetwork/adex-adview-manager/issues/46
 const WAIT_FOR_IMPRESSION = 8000
+// The number of impressions (won auctions) kept in history
+const HISTORY_LIMIT = 50
+// Impression "stickiness" time: see https://github.com/AdExNetwork/adex-adview-manager/issues/65
+// 4 minutes allows ~4 campaigns to rotate, considering a default frequency cap of 15 minutes
+const IMPRESSION_STICKINESS_TIME = 240000
 
 const defaultOpts = {
 	marketURL: 'https://market.moonicorn.network',
-	acceptedStates: ['Active', 'Ready'],
-	minPerImpression: '1',
-	minTargetingScore: 0,
-	// SAI and DAI
-	whitelistedTokens: ['0x89d24A6b4CcB1B6fAA2625fE562bDD9a23260359', '0x6B175474E89094C44Da98b954EedeAC495271d0F'],
-	topByScore: 12,
-	topByPrice: 6,
-	randomize: true,
+	whitelistedTokens: ['0x6B175474E89094C44Da98b954EedeAC495271d0F'],
 	disableVideo: false,
 }
 
-interface TargetTag {
-	tag: string,
-	score: number
-}
-
-type BigNumStr = string
 interface AdViewManagerOptions {
 	// Defaulted via defaultOpts
 	marketURL: string,
-	acceptedStates: Array<string>,
-	minPerImpression: BigNumStr,
-	minTargetingScore: number,
-	randomize: boolean,
 	// Must be passed (except the ones with ?)
+	marketSlot: string,
 	publisherAddr: string,
 	// All passed tokens must be of the same price and decimals, so that the amounts can be accurately compared
-	// e.g. SAI and DAI
 	whitelistedTokens?: Array<string>,
-	whitelistedType?: string,
-	topByPrice?: number,
-	topByScore?: number,
-	targeting?: Array<TargetTag>,
 	width?: number,
 	height?: number,
-	fallbackUnit?: string,
+	navigatorLanguage?: string,
 	disableVideo?: boolean,
-	marketSlot?: string,
-	// Which referrer prefixes are ok
-	acceptedReferrers?: Array<string>,
+	disableSticky?: boolean,
 }
 
-export function calculateTargetScore(a: Array<TargetTag>, b: Array<TargetTag>): number {
-	return a.map(x => {
-		const match = b.find(y => y.tag === x.tag && y.score)
-		if (match) {
-			return x.score * match.score
-		}
-		return 0
-	}).reduce((a, b) => a + b, 0)
+interface Unit {
+	id: string,
+	mediaUrl: string,
+	mediaMime: string,
+	targetUrl: string,
 }
 
-export function applySelection(campaigns: Array<any>, options: AdViewManagerOptions): Array<any> {
-	const eligible = campaigns.filter(campaign => {
-		const minPerImpression = new BN(campaign.spec.minPerImpression)
-		return options.acceptedStates.includes(campaign.status.name)
-			&& (campaign.spec.activeFrom || 0) < Date.now()
-			&& Array.isArray(campaign.spec.adUnits)
-			&& options.whitelistedTokens.includes(campaign.depositAsset)
-			&& minPerImpression.gte(new BN(options.minPerImpression))
-			&& minPerImpression.gte(GLOBAL_MIN_PER_IMPRESSION)
-			&& campaign.creator !== options.publisherAddr
-	})
-
-	// Map them to units, flatten
-	const units = eligible
-		.map(campaign =>
-			campaign.spec.adUnits.map(unit => ({
-				unit,
-				channelId: campaign.id,
-				validators: campaign.spec.validators,
-				minTargetingScore: unit.minTargetingScore || campaign.spec.minTargetingScore || 0,
-				minPerImpression: campaign.spec.minPerImpression,
-			}))
-		)
-		.reduce((a, b) => a.concat(b), [])
-
-	const unitsFiltered = options.whitelistedType
-		? units.filter(x =>
-			x.unit.type === options.whitelistedType
-			&& !(options.disableVideo && isVideo(x.unit))
-		)
-		: units
-
-	const unitsByScore = unitsFiltered
-		.map(x => ({
-			...x,
-			targetingScore: calculateTargetScore(x.unit.targeting, options.targeting || []),
-		}))
-		.filter(x =>
-			x.targetingScore >= options.minTargetingScore
-			&& x.targetingScore >= x.minTargetingScore
-		)
-		.sort((a, b) => b.targetingScore - a.targetingScore)
-
-	const unitsTop = options.topByScore
-		? unitsByScore.slice(0, options.topByScore)
-		: unitsByScore
-
-	const unitsByPrice = unitsTop
-		.sort((b, a) => new BN(a.minPerImpression).cmp(new BN(b.minPerImpression)))
-
-	const unitsTopByPrice = options.topByPrice
-		? unitsByPrice.slice(0, options.topByPrice)
-		: unitsByPrice
-
-	return unitsTopByPrice
-		.sort((a, b) => b.targetingScore - a.targetingScore)
+interface HistoryEntry {
+	time: number,
+	unitId: string,
+	campaignId: string,
+	slotId: string,
 }
 
 export function normalizeUrl(url: string): string {
@@ -153,8 +82,15 @@ function adexIcon(): string {
 		+ `</a>`
 }
 
-function isVideo(unit: any): boolean {
+function isVideo(unit: Unit): boolean {
 	return (unit.mediaMime || '').split('/')[0] === 'video'
+}
+
+function randomizedSortPos(unit: Unit, seed: BN): BN {
+	// using base32 is technically wrong (IDs are in base 58), but it works well enough for this purpose
+	// kind of a LCG PRNG but without the state; using GCC's constraints as seen on stack overflow
+	// takes around ~700ms for 100k iterations, yields very decent distribution (e.g. 724ms 50070, 728ms 49936)
+	return new BN(unit.id, 32).mul(seed).add(new BN(12345)).mod(new BN(0x80000000))
 }
 
 function getUnitHTML({ width, height }: AdViewManagerOptions, { unit, onLoadCode = '', onClickCode = '' }): string {
@@ -172,101 +108,145 @@ function getUnitHTML({ width, height }: AdViewManagerOptions, { unit, onLoadCode
 		+ `</div>`
 }
 
-export function getHTML(options: AdViewManagerOptions, { unit, channelId, validators }): string {
-	const adSlotCode = options.marketSlot ? `, adSlot: '${options.marketSlot}'` : ''
-	const getBody = (evType) => `JSON.stringify({ events: [{ type: '${evType}', publisher: '${options.publisherAddr}', adUnit: '${unit.ipfs}', ref: document.referrer${adSlotCode} }] })`
+export function getUnitHTMLWithEvents(options: AdViewManagerOptions, { unit, campaignId, validators }): string {
+	const getBody = (evType) => `JSON.stringify({ events: [{ type: '${evType}', publisher: '${options.publisherAddr}', adUnit: '${unit.id}', adSlot: '${options.marketSlot}', ref: document.referrer }] })`
 	const getFetchCode = (evType) => `var fetchOpts = { method: 'POST', headers: { 'content-type': 'application/json' }, body: ${getBody(evType)} };` + validators
 		.map(({ url }) => {
-			const fetchUrl = `${url}/channel/${channelId}/events?pubAddr=${options.publisherAddr}`
+			const fetchUrl = `${url}/channel/${campaignId}/events?pubAddr=${options.publisherAddr}`
 			return `fetch('${fetchUrl}',fetchOpts)`
 		})
 		.join(';')
 	const getTimeoutCode = (evType) => `setTimeout(function() {${getFetchCode(evType)}}, ${WAIT_FOR_IMPRESSION})`
-
 	return getUnitHTML(options, { unit, onLoadCode: getTimeoutCode('IMPRESSION'), onClickCode: getFetchCode('CLICK') })
 }
 
 export class AdViewManager {
 	private fetch: any
 	private options: AdViewManagerOptions
-	private timesShown: { [key: string]: number }
-	private optsLoaded: boolean
-	private getTimesShown(channelId: string): number {
-		return this.timesShown[channelId] || 0
-	}
-	constructor(fetch, opts: AdViewManagerOptions) {
+	public history: HistoryEntry[]
+	constructor(fetch, opts: AdViewManagerOptions, history: HistoryEntry[] = []) {
 		this.fetch = fetch
 		this.options = { ...defaultOpts, ...opts }
-		this.timesShown = {}
-		this.optsLoaded = false
+		this.history = history
+		// There's no check for the other properties, but we can actually function without most of them since there's defaults
+		if (!(this.options.marketSlot && this.options.publisherAddr)) throw new Error('marketSlot and publisherAddr options required')
 	}
-	async loadOptionsFromMarket() {
-		const opts = this.options
-
-		if (!this.optsLoaded && opts.marketSlot) {
-				const url = `${opts.marketURL}/slots/${opts.marketSlot}`
-				const { slot, acceptedReferrers } = await this.fetch(url)
-					.then(r => {
-						if(r.status >= 200 && r.status < 400){
-							return r.json()
-						} else {
-							return {}
-						}
-					})
-				// If this is an object, it is a mapping of tokenAddr->value, but since a slot always uses tokens
-				// of the same price/decimals, all values should be the same
-				const resMinPerImpression: any = typeof slot.minPerImpression === 'string'
-					? slot.minPerImpression
-					: Object.values(slot.minPerImpression || {})[0]
-				const optsOverride = {
-					fallbackUnit: slot.fallbackUnit || opts.fallbackUnit,
-					minPerImpression: resMinPerImpression || opts.minPerImpression,
-					minTargetingScore: slot.minTargetingScore || opts.minTargetingScore,
-					targeting: slot.tags || opts.targeting,
-					acceptedReferrers: acceptedReferrers || opts.acceptedReferrers
-				}
-
-				this.options = { ...opts, ...optsOverride }
-				this.optsLoaded = true
+	private getTargetingInput(targetingInputBase: any, campaign: any): any {
+		const lastImpression = this.history.reverse().find(({ campaignId }) => campaignId === campaign.id)
+		return  {
+			...targetingInputBase,
+			'adView.navigatorLanguage': this.options.navigatorLanguage,
+			'adView.secondsSinceCampaignImpression': lastImpression
+				? Math.floor((Date.now() - lastImpression.time) / 1000)
+				: Infinity
 		}
 	}
+	private getStickyAdUnit(campaigns: any, acceptedReferrers: any): any {
+		if (this.options.disableSticky) return null
 
-	async getAdUnits(): Promise<any> {
-		const states = `status=${this.options.acceptedStates.join(',')}`
-		const publisherLimit = `limitForPublisher=${this.options.publisherAddr}`
-		const url = `${this.options.marketURL}/campaigns/with-targeting?${states}&${publisherLimit}`
-		const { campaigns, targeting } = await this.fetch(url).then(r => r.json())
-		this.options.targeting = this.options.targeting.concat(targeting)
-		return applySelection(campaigns, this.options)
-	}
-	async getFallbackUnit(): Promise<any> {
-		const { fallbackUnit } = this.options
-		if (!fallbackUnit) return null
-		const url = `${this.options.marketURL}/units/${this.options.fallbackUnit}`
-		const result = await this.fetch(url).then(r => r.json())
-		return result.unit
-	}
-	async getNextAdUnit(): Promise<any> {
-		await this.loadOptionsFromMarket()
-		const units = await this.getAdUnits()
-		if (units.length === 0) {
-			const fallbackUnit = await this.getFallbackUnit()
-			if (fallbackUnit) {
-				return { ...fallbackUnit, html: getUnitHTML(this.options, { unit: fallbackUnit }) }
-			} else {
-				return null
+		const stickinessThreshold = Date.now() - IMPRESSION_STICKINESS_TIME
+		const stickyEntry = this.history.find(entry =>
+			entry.time > stickinessThreshold
+				&& entry.slotId === this.options.marketSlot
+		)
+		if (stickyEntry) {
+			const stickyCampaign = campaigns.find(campaign => campaign.id === stickyEntry.campaignId)
+			// Campaign couldn't be found, it means it's no longer active (either expired or unsound)
+			// in both cases, we don't want to be showing it
+			if (!stickyCampaign) return null
+			const { unit } = stickyCampaign.unitsWithPrice.find(x => x.unit.id === stickyEntry.unitId)
+			return {
+				unit,
+				price: '0',
+				acceptedReferrers,
+				html: getUnitHTML(this.options, { unit }),
+				isSticky: true
 			}
 		}
+		return null
+	}
+	private isCampaignSticky(campaign: any): boolean {
+		if (this.options.disableSticky) return false
+		const stickinessThreshold = Date.now() - IMPRESSION_STICKINESS_TIME
+		return !!this.history.find(entry => entry.time > stickinessThreshold && entry.campaignId === campaign.id)
+	}
+	async getMarketDemandResp(): Promise<any> {
+		const marketURL = this.options.marketURL
+		const depositAsset = this.options.whitelistedTokens.map(tokenAddr => `&depositAsset=${tokenAddr}`).join('')
+		const pubPrefix = this.options.publisherAddr.slice(2, 10)
+		const url = `${marketURL}/units-for-slot/${this.options.marketSlot}?pubPrefix=${pubPrefix}${depositAsset}`
+		const r = await this.fetch(url)
+		if (r.status !== 200) throw new Error(`market returned status code ${r.status} at ${url}`)
+		return r.json()
+	}
+	async getNextAdUnit(): Promise<any> {
+		const { campaigns, targetingInputBase, acceptedReferrers, fallbackUnit } = await this.getMarketDemandResp()
 
-		const min = units
-			.map(({ channelId }) => this.getTimesShown(channelId))
-			.reduce((a, b) => Math.min(a, b))
-		const leastShownUnits = units
-			.filter(({ channelId }) => this.getTimesShown(channelId) === min)
-		const next = this.options.randomize ?
-			leastShownUnits[Math.floor(Math.random() * leastShownUnits.length)]
-			: leastShownUnits[0]
-		this.timesShown[next.channelId] = this.getTimesShown(next.channelId) + 1
-		return { ...next, html: getHTML(this.options, next) }
+		// Stickiness is when we keep showing an ad unit for a slot for some time in order to achieve fair impression value
+		// see https://github.com/AdExNetwork/adex-adview-manager/issues/65
+		const stickyResult = this.getStickyAdUnit(campaigns, acceptedReferrers)
+		if (stickyResult) return stickyResult
+
+		// If two or more units result in the same price, apply random selection between them: this is why we need the seed
+		const seed = new BN(Math.random() * (0x80000000 - 1))
+
+		// Apply targeting, now with adView.* variables, and sort the resulting ad units
+		const unitsWithPrice = campaigns
+			.map(campaign => {
+				if (this.isCampaignSticky(campaign)) return []
+
+				const campaignInputBase = this.getTargetingInput(targetingInputBase, campaign)
+				const campaignInput = targetingInputGetter.bind(null, campaignInputBase, campaign)
+				return campaign.unitsWithPrice.filter(({ unit, price }) => {
+					const input = campaignInput.bind(null, unit)
+					const output = {
+						show: true,
+						'price.IMPRESSION': new BN(price),
+					}
+					// NOTE: not using the price from the output on purpose
+					// we trust what the server gives us since otherwise we may end up changing the price based on
+					// adView-specific variables, which won't be consistent with the validator's price
+					const onTypeErr = (e, rule) => console.error(`WARNING: rule for ${campaign.id} failing with:`, rule, e)
+					return evaluateMultiple(input, output, campaign.targetingRules, onTypeErr).show
+				}).map(x => ({ ...x, campaignId: campaign.id }))
+			})
+			.reduce((a, b) => a.concat(b), [])
+			.filter(x => !(this.options.disableVideo && isVideo(x.unit)))
+			.sort((b, a) =>
+				new BN(a.price).cmp(new BN(b.price))
+					|| randomizedSortPos(a.unit, seed).cmp(randomizedSortPos(b.unit, seed))
+			)
+
+		// Update history
+		const auctionWinner = unitsWithPrice[0]
+		if (auctionWinner) {
+			this.history.push({
+				time: Date.now(),
+				slotId: this.options.marketSlot,
+				unitId: auctionWinner.unit.id,
+				campaignId: auctionWinner.campaignId,
+			})
+			this.history = this.history.slice(-HISTORY_LIMIT)
+		}
+
+		// Return the results, with a fallback unit if there is one
+		if (auctionWinner) {
+			const { unit, price, campaignId } = auctionWinner
+			const { validators } = campaigns.find(x => x.id === campaignId).spec
+			return {
+				unit,
+				price,
+				acceptedReferrers,
+				html: getUnitHTMLWithEvents(this.options, { unit, campaignId, validators })
+			}
+		} else {
+			const unit = fallbackUnit
+			return {
+				unit,
+				price: '0',
+				acceptedReferrers,
+				html: getUnitHTML(this.options, { unit })
+			}
+		}
 	}
 }

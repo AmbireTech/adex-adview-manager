@@ -1,4 +1,4 @@
-import { evaluate, evalMultiple, RuleEvalError } from '../src/rules'
+import { evaluate, RuleEvalError } from '../src/rules'
 import * as test from 'tape'
 import { BN } from 'bn.js'
 
@@ -66,6 +66,8 @@ test('comparison: numbers', t => {
 	t.equal(evalPure({ lt: [55, new BN(100)] }), true)
 	t.equal(evalPure({ gt: [55, 100] }), false)
 	t.equal(evalPure({ gt: [new BN(55), 100] }), false)
+	t.equal(evalPure({ lt: [new BN(55), new BN(100)] }), true)
+	t.equal(evalPure({ lt: [new BN(101), new BN(100)] }), false)
 	t.end()
 })
 

@@ -7,7 +7,7 @@ export function evaluate(input: any, output: any, rule: any) {
 	if (typeof rule === 'boolean') return rule
 	if (typeof rule === 'number') return rule
 	if (Array.isArray(rule)) return rule
-	if (rule instanceof BN) return rule
+	if (BN.isBN(rule)) return rule
 	// @TODO: consider checking for other types such as symbol, undefined, function, bigint - and throw an error
 
 	const evalRule = evaluate.bind(null, input, output)
@@ -24,8 +24,9 @@ export function evaluate(input: any, output: any, rule: any) {
 			throw new RuleEvalError({ message: 'TypeError: expected array of two numbers', isTypeError: true })
 		const a = evalRule(numbers[0])
 		const b = evalRule(numbers[1])
-		if (a instanceof BN) return onBNs(a, new BN(assertType(b, 'number')))
-		if (b instanceof BN) return onBNs(new BN(assertType(a, 'number')), b)
+		if (BN.isBN(a) && BN.isBN(b)) return onBNs(a, b)
+		if (BN.isBN(a)) return onBNs(a, new BN(assertType(b, 'number')))
+		if (BN.isBN(b)) return onBNs(new BN(assertType(a, 'number')), b)
 		return onNumbers(assertType(a, 'number'), assertType(b, 'number'))
 	}
 
@@ -72,8 +73,8 @@ export function evaluate(input: any, output: any, rule: any) {
 		assertArrayArgs(rule.eq, 2)
 		const a = evalRule(rule.eq[0])
 		const b = evalRule(rule.eq[1])
-		if (a instanceof BN) return a.eq(new BN(b))
-		if (b instanceof BN) return b.eq(new BN(a))
+		if (BN.isBN(a)) return a.eq(new BN(b))
+		if (BN.isBN(b)) return b.eq(new BN(a))
 		return a === b
 	} else if (rule.hasOwnProperty('lt')) {
 		return evalWithNumbers(
@@ -187,10 +188,15 @@ export function evaluate(input: any, output: any, rule: any) {
 	}
 }
 
-export function evalMultiple(input: any, output: any, rules: any) {
-	// @TODO: ignore UndefinedVar errors; or just take onError callback
+export function evaluateMultiple(input: any, output: any, rules: any, onTypeErr: any) {
 	for (const rule of rules) {
-		evaluate(input, output, rule)
+		try {
+			evaluate(input, output, rule)
+		} catch(e) {
+			if (e.isUndefinedVar) continue
+			else if (e.isTypeError && onTypeErr) onTypeErr(e, rule)
+			else throw e
+		}
 		// We stop executing if at any point the show is set to false
 		if (output.show === false) return output
 	}
