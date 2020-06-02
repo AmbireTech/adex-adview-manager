@@ -239,7 +239,7 @@ export class AdViewManager {
 				acceptedReferrers,
 				html: getUnitHTMLWithEvents(this.options, { unit, campaignId, validators })
 			}
-		} else {
+		} else if (fallbackUnit) {
 			const unit = fallbackUnit
 			return {
 				unit,
@@ -247,6 +247,8 @@ export class AdViewManager {
 				acceptedReferrers,
 				html: getUnitHTML(this.options, { unit })
 			}
+		} else {
+			return null
 		}
 	}
 }
