@@ -114,6 +114,13 @@ test('can construct a BigNumber', t => {
 	t.end()
 })
 
+// @TODO: test mod, div, mul, sub, min, max
+test('math: syntax sugar', t => {
+	t.deepEqual(evalPure({ mulDiv: [new BN(300), 2, 3] }), new BN(200))
+	t.deepEqual(evalPure({ mulDiv: [new BN(500), 2, 3] }), new BN(333))
+	t.end()
+})
+
 // strings
 
 test('strings', t => {
@@ -127,8 +134,6 @@ test('strings', t => {
 
 	t.end()
 })
-
-// @TODO: test mod, div, mul, sub, min, max
 
 // set/get
 test('set/get: errors', t => {
