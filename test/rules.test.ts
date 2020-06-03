@@ -137,6 +137,7 @@ test('math: basic operations', t => {
 })
 
 test('math: syntax sugar', t => {
+	t.equal(evalPure({ mulDiv: [300, 2, 3] }), 200)
 	t.deepEqual(evalPure({ mulDiv: [new BN(300), 2, 3] }), new BN(200))
 	t.deepEqual(evalPure({ mulDiv: [new BN(500), 2, 3] }), new BN(333))
 	t.end()
