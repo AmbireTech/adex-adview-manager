@@ -26,6 +26,9 @@ test('flow control', t => {
 
 test('flow control: errors', t => {
 	t.throws(() => evalPure({ ifElse: [false, { set: ['bar', 3] }] }), RuleEvalError)
+	t.throws(() => evalPure({ if: [false] }), RuleEvalError)
+	t.throws(() => evalPure({ if: 1 }), RuleEvalError)
+	t.throws(() => evalPure({ ifNot: [false] }), RuleEvalError)
 	t.end()
 })
 
