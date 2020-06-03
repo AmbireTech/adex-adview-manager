@@ -114,7 +114,28 @@ test('can construct a BigNumber', t => {
 	t.end()
 })
 
-// @TODO: test mod, div, mul, sub, min, max
+test('math: basic operations', t => {
+	t.equal(evalPure({ div: [10, 3] }), 10 / 3)
+	t.deepEqual(evalPure({ div: [new BN(100), 3] }), new BN(33))
+	t.deepEqual(evalPure({ div: [new BN(100), new BN(3)] }), new BN(33))
+	t.equal(evalPure({ mul: [10, 3] }), 30)
+	t.deepEqual(evalPure({ mul: [100, new BN(3)] }), new BN(300))
+	t.equal(evalPure({ mod: [100, 3] }), 1)
+	t.deepEqual(evalPure({ mod: [new BN(100), 3] }), new BN(1))
+	t.equal(evalPure({ add: [100, 3] }), 103)
+	t.deepEqual(evalPure({ add: [new BN(100), 3] }), new BN(103))
+	t.equal(evalPure({ sub: [100, 3] }), 97)
+	t.deepEqual(evalPure({ sub: [new BN(100), 3] }), new BN(97))
+	t.deepEqual(evalPure({ sub: [100, new BN(3)] }), new BN(97))
+	t.deepEqual(evalPure({ sub: [new BN(100), new BN(3)] }), new BN(97))
+	t.deepEqual(evalPure({ max: [100, new BN(3)] }), new BN(100))
+	t.equal(evalPure({ max: [100, 3] }), 100)
+	t.equal(evalPure({ min: [100, 3] }), 3)
+	t.deepEqual(evalPure({ min: [new BN(100), 3] }), new BN(3))
+	t.deepEqual(evalPure({ min: [new BN(100), new BN(3)] }), new BN(3))
+	t.end()
+})
+
 test('math: syntax sugar', t => {
 	t.deepEqual(evalPure({ mulDiv: [new BN(300), 2, 3] }), new BN(200))
 	t.deepEqual(evalPure({ mulDiv: [new BN(500), 2, 3] }), new BN(333))
