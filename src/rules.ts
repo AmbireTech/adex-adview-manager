@@ -36,6 +36,7 @@ export function evaluate(input: any, output: any, rule: any) {
 		const predicate = evalToBoolean(rule.if[0])
 		if (predicate) evalRule(rule.if[1])
 	} else if (rule.hasOwnProperty('ifNot')) {
+		// an alternative way to do this would be to return { not: { if:  } }
 		assertArrayArgs(rule.ifNot, 2)
 		const predicate = evalToBoolean(rule.ifNot[0])
 		if (!predicate) evalRule(rule.ifNot[1])
@@ -94,6 +95,7 @@ export function evaluate(input: any, output: any, rule: any) {
 			(a, b) => a >= b,
 			(a, b) => a.gte(b)
 		)
+		
 	// logic
 	} else if (rule.hasOwnProperty('not')) {
 		return !evalToBoolean(rule.not)
@@ -146,6 +148,13 @@ export function evaluate(input: any, output: any, rule: any) {
 			(a, b) => Math.min(a, b),
 			(a, b) => BN.min(a, b)
 		)
+	// math syntax sugar
+	} else if (rule.hasOwnProperty('mulDiv')) {
+		assertArrayArgs(rule.mulDiv, 3)
+		return evalRule({ div: [
+			{ mul: [rule.mulDiv[0], rule.mulDiv[1]] },
+			rule.mulDiv[2]
+		]})
 	// construct a bn
 	} else if (rule.hasOwnProperty('bn')) {
 		return new BN(assertType(evalRule(rule.bn), 'string'))
