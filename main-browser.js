@@ -21,10 +21,6 @@ function collapse() {
 }
 
 function initWithOptions(options) {
-	// emergency fix
-	if (options.publisher) options.publisherAddr = options.publisher;
-	// end of emergency fix
-
 	// basic headless detection
 	if (navigator.webdriver || !(Array.isArray(navigator.languages) && navigator.languages.length)) {
 		collapse()
