@@ -173,6 +173,7 @@ export class AdViewManager {
 	async getMarketDemandResp(): Promise<any> {
 		const marketURL = this.options.marketURL
 		const depositAsset = this.options.whitelistedTokens.map(tokenAddr => `&depositAsset=${tokenAddr}`).join('')
+		// @NOTE not the same as the WAF generator script in the Market (which uses `.slice(2, 12)`)
 		const pubPrefix = this.options.publisherAddr.slice(2, 10)
 		const url = `${marketURL}/units-for-slot/${this.options.marketSlot}?pubPrefix=${pubPrefix}${depositAsset}`
 		const r = await this.fetch(url)
@@ -197,6 +198,7 @@ export class AdViewManager {
 
 				const campaignInputBase = this.getTargetingInput(targetingInputBase, campaign)
 				const campaignInput = targetingInputGetter.bind(null, campaignInputBase, campaign)
+				const onTypeErr = (e, rule) => console.error(`WARNING: rule for ${campaign.id} failing with:`, rule, e)
 				return campaign.unitsWithPrice.filter(({ unit, price }) => {
 					const input = campaignInput.bind(null, unit)
 					const output = {
@@ -206,7 +208,6 @@ export class AdViewManager {
 					// NOTE: not using the price from the output on purpose
 					// we trust what the server gives us since otherwise we may end up changing the price based on
 					// adView-specific variables, which won't be consistent with the validator's price
-					const onTypeErr = (e, rule) => console.error(`WARNING: rule for ${campaign.id} failing with:`, rule, e)
 					return evaluateMultiple(input, output, campaign.targetingRules, onTypeErr).show
 				}).map(x => ({ ...x, campaignId: campaign.id }))
 			})
