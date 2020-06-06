@@ -108,7 +108,7 @@ function getUnitHTML({ width, height }: AdViewManagerOptions, { unit, onLoadCode
 		+ `</div>`
 }
 
-export function getUnitHTMLWithEvents(options: AdViewManagerOptions, { unit, campaignId, validators }): string {
+export function getUnitHTMLWithEvents(options: AdViewManagerOptions, { unit, campaignId, validators, noImpression = false }): string {
 	const getBody = (evType) => `JSON.stringify({ events: [{ type: '${evType}', publisher: '${options.publisherAddr}', adUnit: '${unit.id}', adSlot: '${options.marketSlot}', ref: document.referrer }] })`
 	const getFetchCode = (evType) => `var fetchOpts = { method: 'POST', headers: { 'content-type': 'application/json' }, body: ${getBody(evType)} };` + validators
 		.map(({ url }) => {
@@ -117,7 +117,7 @@ export function getUnitHTMLWithEvents(options: AdViewManagerOptions, { unit, cam
 		})
 		.join(';')
 	const getTimeoutCode = (evType) => `setTimeout(function() {${getFetchCode(evType)}}, ${WAIT_FOR_IMPRESSION})`
-	return getUnitHTML(options, { unit, onLoadCode: getTimeoutCode('IMPRESSION'), onClickCode: getFetchCode('CLICK') })
+	return getUnitHTML(options, { unit, onLoadCode: noImpression ? '' : getTimeoutCode('IMPRESSION'), onClickCode: getFetchCode('CLICK') })
 }
 
 export class AdViewManager {
@@ -159,7 +159,12 @@ export class AdViewManager {
 				unit,
 				price: '0',
 				acceptedReferrers,
-				html: getUnitHTML(this.options, { unit }),
+				html: getUnitHTMLWithEvents(this.options, {
+					unit,
+					validators: stickyCampaign.spec.validators,
+					campaignId: stickyCampaign.id,
+					noImpression: true
+				}),
 				isSticky: true
 			}
 		}
