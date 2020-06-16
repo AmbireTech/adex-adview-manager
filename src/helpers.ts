@@ -8,7 +8,7 @@ export function targetingInputGetter(base: any, campaign: any, unit: any, propNa
 	if (propName === 'campaignSecondsActive')
 		return Math.max(0, Math.floor((Date.now() - (campaign.spec.activeFrom || campaign.spec.created))/1000))
 	if (propName === 'campaignSecondsDuration')
-		return Math.floor((campaign.spec.withdrawPeriodStart-(campaign.spec.activeFrom || campaign.spec.created)))
+		return Math.floor((campaign.spec.withdrawPeriodStart-(campaign.spec.activeFrom || campaign.spec.created))/1000)
 	// skipping for now cause of performance (not obtaining status): campaignTotalSpent, publisherEarnedFromCampaign
 	if (propName === 'campaignTotalSpent' && campaign.status) return Object.values(campaign.status.lastApprovedBalances)
 		.map(x => new BN(x))
