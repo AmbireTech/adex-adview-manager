@@ -95,7 +95,7 @@ function randomizedSortPos(unit: Unit, seed: BN): BN {
 
 function getUnitHTML({ width, height }: AdViewManagerOptions, { unit, onLoadCode = '', onClickCode = '' }): string {
 	const imgUrl = normalizeUrl(unit.mediaUrl)
-	const size = 'width=100%'
+	const size = `width=${width} height=${height} style="width: 100%; height: auto;"`
 	return `<div
 			style="position: relative; overflow: hidden; ${(width && height) ? `max-width: ${width}px; min-width: ${width/2}px; height: ${height}px;` : ''}"
 		>`
