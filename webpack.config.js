@@ -10,7 +10,12 @@ module.exports = {
     crossOriginLoading: 'anonymous',
   },
   plugins: [
-    new HtmlWebpackPlugin({ title: 'AdEx Adview' }),
+    new HtmlWebpackPlugin({
+      templateParameters: {
+        title: 'AdEx Adview',
+      },
+      template: 'index.ejs',
+    }),
     new SriPlugin({
       hashFuncNames: ['sha256', 'sha384'],
       enabled: true,
