@@ -2,9 +2,11 @@ import { BN } from 'bn.js'
 
 export function targetingInputGetter(base: any, campaign: any, unit: any, propName: string): any {
 	if (propName === 'adUnitId' && unit) return unit.id || unit.ipfs
-	if (propName === 'adUnitCategories' && unit) return unit.categories || (unit.targeting
-		? unit.targeting.map(x => x.tag.includes('adult') ? 'IAB25-3' : null).filter(x => x)
-		: undefined)
+	if (propName === 'adUnitCategories' && unit) return unit.categories || (
+		unit.targeting
+			? unit.targeting.map(x => x.tag.includes('adult') ? 'IAB25-3' : null).filter(x => x)
+			: undefined
+	)
 	if (propName === 'campaignId') return campaign.id
 	if (propName === 'advertiserId') return campaign.creator
 	if (propName === 'campaignBudget') return new BN(campaign.depositAmount)
