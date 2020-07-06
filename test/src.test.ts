@@ -26,10 +26,11 @@ test('Get HTML tests', (t) => {
 	const otherInfo = {
 		unit: {
 			ipfs: 'ipfs://QmcUVX7fvoLMM93uN2bD3wGTH8MXSxeL8hojYfL2Lhp7mR',
-			targetUrl: 'https://xxxtentacion.com/',
+			targetUrl: 'https://xxxtentacion.com/?utm_source=adex_PUBHOSTNAME',
 			mediaUrl: 'ipfs://QmcUVX7fvoLMM93uN2bD3wGTH8MXSxeL8hojYfL2Lhp7mR',
 			mediaMime: ''
 		},
+		hostname: 'pub.com',
 		campaignId: '0x0',
 		validators: [{ url: 'https://tom.adex.network' }, { url: 'https://jerry.adex.network' }]
 	}
@@ -47,7 +48,7 @@ test('Get HTML tests', (t) => {
 	t.equals(targetEl.nodeName, 'A', 'Link is link')
 	t.ok(targetEl.hasAttribute('href'), 'Link leads to somewhere')
 	t.ok(targetEl.hasAttribute('onclick'), 'Link has onclick')
-	t.equals(targetEl.href, otherInfo.unit.targetUrl, 'Link leads to the right URL')
+	t.equals(targetEl.href, otherInfo.unit.targetUrl.replace('adex_PUBHOSTNAME', 'AdEx+(pub.com)'), 'Link leads to the right URL')
 
 	const image = targetEl.firstChild
 	t.equals(image.nodeName, 'IMG', 'Link contains an image')

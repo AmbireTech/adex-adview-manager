@@ -93,13 +93,15 @@ function randomizedSortPos(unit: Unit, seed: BN): BN {
 	return new BN(unit.id, 32).mul(seed).add(new BN(12345)).mod(new BN(0x80000000))
 }
 
-function getUnitHTML({ width, height }: AdViewManagerOptions, { unit, onLoadCode = '', onClickCode = '' }): string {
+function getUnitHTML({ width, height }: AdViewManagerOptions, { unit, hostname, onLoadCode = '', onClickCode = '' }): string {
 	const imgUrl = normalizeUrl(unit.mediaUrl)
 	const size = `width=${width} height=${height} style="width: 100%; height: auto;"`
+	// @TODO click protection page
+	const finalTargetUrl = unit.targetUrl.replace('utm_source=adex_PUBHOSTNAME', `utm_source=AdEx+(${hostname})`)
 	return `<div
 			style="position: relative; overflow: hidden; ${(width && height) ? `max-width: ${width}px; min-width: ${width/2}px; height: ${height}px;` : ''}"
 		>`
-		+ `<a href="${unit.targetUrl}" target="_blank" onclick="${onClickCode}" rel="noopener noreferrer">`
+		+ `<a href="${finalTargetUrl}" target="_blank" onclick="${onClickCode}" rel="noopener noreferrer">`
 		+ (isVideo(unit)
 			? videoHtml({ onLoadCode, size, imgUrl, mediaMime: unit.mediaMime })
 			: imageHtml({ onLoadCode, size, imgUrl }))
@@ -108,7 +110,7 @@ function getUnitHTML({ width, height }: AdViewManagerOptions, { unit, onLoadCode
 		+ `</div>`
 }
 
-export function getUnitHTMLWithEvents(options: AdViewManagerOptions, { unit, campaignId, validators, noImpression = false }): string {
+export function getUnitHTMLWithEvents(options: AdViewManagerOptions, { unit, hostname, campaignId, validators, noImpression = false }): string {
 	const getBody = (evType) => `JSON.stringify({ events: [{ type: '${evType}', publisher: '${options.publisherAddr}', adUnit: '${unit.id}', adSlot: '${options.marketSlot}', ref: document.referrer }] })`
 	const getFetchCode = (evType) => `var fetchOpts = { method: 'POST', headers: { 'content-type': 'application/json' }, body: ${getBody(evType)} };` + validators
 		.map(({ url }) => {
@@ -117,7 +119,7 @@ export function getUnitHTMLWithEvents(options: AdViewManagerOptions, { unit, cam
 		})
 		.join(';')
 	const getTimeoutCode = (evType) => `setTimeout(function() {${getFetchCode(evType)}}, ${WAIT_FOR_IMPRESSION})`
-	return getUnitHTML(options, { unit, onLoadCode: noImpression ? '' : getTimeoutCode('IMPRESSION'), onClickCode: getFetchCode('CLICK') })
+	return getUnitHTML(options, { unit, hostname, onLoadCode: noImpression ? '' : getTimeoutCode('IMPRESSION'), onClickCode: getFetchCode('CLICK') })
 }
 
 export class AdViewManager {
@@ -141,7 +143,7 @@ export class AdViewManager {
 				: Infinity
 		}
 	}
-	private getStickyAdUnit(campaigns: any, acceptedReferrers: any): any {
+	private getStickyAdUnit(campaigns: any, hostname: string): any {
 		if (this.options.disableSticky) return null
 
 		const stickinessThreshold = Date.now() - IMPRESSION_STICKINESS_TIME
@@ -158,9 +160,9 @@ export class AdViewManager {
 			return {
 				unit,
 				price: '0',
-				acceptedReferrers,
 				html: getUnitHTMLWithEvents(this.options, {
 					unit,
+					hostname,
 					validators: stickyCampaign.spec.validators,
 					campaignId: stickyCampaign.id,
 					noImpression: true
@@ -187,11 +189,12 @@ export class AdViewManager {
 	}
 	async getNextAdUnit(): Promise<any> {
 		const { campaigns, targetingInputBase, acceptedReferrers, fallbackUnit } = await this.getMarketDemandResp()
+		const hostname = targetingInputBase['adSlot.hostname']
 
 		// Stickiness is when we keep showing an ad unit for a slot for some time in order to achieve fair impression value
 		// see https://github.com/AdExNetwork/adex-adview-manager/issues/65
-		const stickyResult = this.getStickyAdUnit(campaigns, acceptedReferrers)
-		if (stickyResult) return stickyResult
+		const stickyResult = this.getStickyAdUnit(campaigns, hostname)
+		if (stickyResult) return { ...stickyResult, acceptedReferrers }
 
 		// If two or more units result in the same price, apply random selection between them: this is why we need the seed
 		const seed = new BN(Math.random() * (0x80000000 - 1))
@@ -243,7 +246,7 @@ export class AdViewManager {
 				unit,
 				price,
 				acceptedReferrers,
-				html: getUnitHTMLWithEvents(this.options, { unit, campaignId, validators })
+				html: getUnitHTMLWithEvents(this.options, { unit, hostname, campaignId, validators })
 			}
 		} else if (fallbackUnit) {
 			const unit = fallbackUnit
@@ -251,7 +254,7 @@ export class AdViewManager {
 				unit,
 				price: '0',
 				acceptedReferrers,
-				html: getUnitHTML(this.options, { unit })
+				html: getUnitHTML(this.options, { unit, hostname })
 			}
 		} else {
 			return null
