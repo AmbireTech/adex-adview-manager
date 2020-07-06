@@ -97,7 +97,7 @@ function getUnitHTML({ width, height }: AdViewManagerOptions, { unit, hostname, 
 	const imgUrl = normalizeUrl(unit.mediaUrl)
 	const size = `width=${width} height=${height} style="width: 100%; height: auto;"`
 	// @TODO click protection page
-	const finalTargetUrl = unit.targetUrl.replace('utm_source=adex_PUBHOSTNAME', `utm_source=AdEx+${hostname}`)
+	const finalTargetUrl = unit.targetUrl.replace('utm_source=adex_PUBHOSTNAME', `utm_source=AdEx+(${hostname})`)
 	return `<div
 			style="position: relative; overflow: hidden; ${(width && height) ? `max-width: ${width}px; min-width: ${width/2}px; height: ${height}px;` : ''}"
 		>`
