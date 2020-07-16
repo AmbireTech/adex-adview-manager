@@ -15,11 +15,11 @@ export function targetingInputGetter(base: any, campaign: any, unit: any, propNa
 	if (propName === 'campaignSecondsDuration')
 		return Math.floor((campaign.spec.withdrawPeriodStart-(campaign.spec.activeFrom || campaign.spec.created))/1000)
 	// skipping for now cause of performance (not obtaining status): campaignTotalSpent, publisherEarnedFromCampaign
-	if (propName === 'campaignTotalSpent' && campaign.status) return Object.values(campaign.status.lastApprovedBalances)
+	if (propName === 'campaignTotalSpent' && campaign.status) return Object.values(campaign.status.lastApprovedBalances || {})
 		.map(x => new BN(x))
 		.reduce((a, b) => a.add(b), new BN(0))
 	if (propName === 'publisherEarnedFromCampaign' && campaign.status)
-		return new BN(campaign.status.lastApprovedBalances[base.publisherId] || 0)
+		return new BN((campaign.status.lastApprovedBalances || {})[base.publisherId] || 0)
 	if (propName === 'eventMinPrice') return getPricingBounds(campaign, base.eventType)[0]
 	if (propName === 'eventMaxPrice') return getPricingBounds(campaign, base.eventType)[1]
 	return base[propName]
