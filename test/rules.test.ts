@@ -160,6 +160,7 @@ test('strings', t => {
 // set/get
 test('set/get: errors', t => {
 	t.throws(() => evaluate({}, {}, { get: 'somevar' }), RuleEvalError, 'undefined variable error')
+	t.throws(() => evaluate({}, {}, { set: ['somevar', 0] }), RuleEvalError, 'undefined variable error')
 	t.throws(() => evalToOutput({ set: ['foo', 'string'] }), RuleEvalError, 'cannot change type of an output variable')
 	t.end()
 })
