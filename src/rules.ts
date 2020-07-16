@@ -189,6 +189,8 @@ export function evaluate(input: any, output: any, rule: any) {
 		assertArrayArgs(rule.set, 2)
 		const key = assertType(rule.set[0], 'string')
 		const prevType = getTypeName(output[key])
+		if (prevType === 'undefined')
+			throw new RuleEvalError({ message: `UndefinedVar: ${key}`, undefinedVar: key })
 		const value = evalRule(rule.set[1])
 		output[key] = assertType(value, prevType)
 	// utilities
