@@ -77,7 +77,6 @@ test('targetingInputGetter: campaignSecondsDuration', t => {
 test('targetingInputGetter: campaignTotalSpent', t => {
 
     t.deepEqual(targetingInputGetter({}, {}, {}, "campaignTotalSpent"), undefined)
-    t.deepEqual(targetingInputGetter({}, { status: {} }, {}, "campaignTotalSpent"), new BN(0))
     t.deepEqual(targetingInputGetter({}, { status: { lastApprovedBalances: {} } }, {}, "campaignTotalSpent"), new BN(0))
     t.deepEqual(targetingInputGetter({}, { status: { lastApprovedBalances: { "one": 10, "two": 500 } } }, {}, "campaignTotalSpent"), new BN(510))
 
@@ -87,7 +86,6 @@ test('targetingInputGetter: campaignTotalSpent', t => {
 test('targetingInputGetter: publisherEarnedFromCampaign', t => {
 
     t.deepEqual(targetingInputGetter({}, {}, {}, "publisherEarnedFromCampaign"), undefined)
-    t.deepEqual(targetingInputGetter({}, { status: {} }, {}, "publisherEarnedFromCampaign"), new BN(0))
     t.deepEqual(targetingInputGetter({}, { status: { lastApprovedBalances: {} } }, {}, "publisherEarnedFromCampaign"), new BN(0))
     t.deepEqual(targetingInputGetter({ publisherId: "two" }, { status: { lastApprovedBalances: { "one": 10, "two": 500 } } }, {}, "publisherEarnedFromCampaign"), new BN(500))
 
