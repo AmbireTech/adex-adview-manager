@@ -134,7 +134,7 @@ export class AdViewManager {
 		if (!(this.options.marketSlot && this.options.publisherAddr)) throw new Error('marketSlot and publisherAddr options required')
 	}
 	private getTargetingInput(targetingInputBase: any, campaign: any): any {
-		const lastImpression = this.history.reverse().find(({ campaignId }) => campaignId === campaign.id)
+		const lastImpression = [...this.history].reverse().find(({ campaignId }) => campaignId === campaign.id)
 		return  {
 			...targetingInputBase,
 			'adView.navigatorLanguage': this.options.navigatorLanguage,
