@@ -50,7 +50,7 @@ function initWithOptions(options) {
 	// construct the AdView manager with existing history, select the next ad unit, display it
 	const mgr = new AdViewManager((url, o) => fetch(url, o), options, history)
 	mgr.getNextAdUnit().then(u => {
-		if (Array.isArray(u.acceptedReferrers)
+		if (u && Array.isArray(u.acceptedReferrers)
 			&& document.referrer
 			&& !document.referrer.startsWith('https://localhost:8080')
 			&& !u.acceptedReferrers.some(ref => document.referrer.startsWith(ref))
