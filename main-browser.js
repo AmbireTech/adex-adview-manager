@@ -50,13 +50,14 @@ function initWithOptions(options) {
 	// construct the AdView manager with existing history, select the next ad unit, display it
 	const mgr = new AdViewManager((url, o) => fetch(url, o), options, history)
 	mgr.getNextAdUnit().then(u => {
+		const referrerNeeded = window.location !== window.parent.location
 		if (u && Array.isArray(u.acceptedReferrers)
-			&& document.referrer
+			&& referrerNeeded
 			&& !document.referrer.startsWith('https://localhost:8080')
 			&& !u.acceptedReferrers.some(ref => document.referrer.startsWith(ref))
 		) {
 			// @TODO: more correct detection
-			if (document.referrer.includes('/localhost')) {
+			if (document.referrer.includes('//localhost')) {
 				const size = `${mgr.options.width}x${mgr.options.height}`
 				document.body.innerHTML = `<img src="/dev-banners/${size}.jpg" alt="AdEx development banner" width="${mgr.options.width}" height="${mgr.options.height}">`
 			} else {
