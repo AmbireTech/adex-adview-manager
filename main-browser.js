@@ -9,7 +9,7 @@ function safeJSONParse(json, defaultVal) {
 	if (!json) return defaultVal
 	try {
 		return JSON.parse(json)
-	} catch (e) {
+	} catch(e) {
 		console.error(e)
 		return defaultVal
 	}
@@ -17,15 +17,12 @@ function safeJSONParse(json, defaultVal) {
 
 function collapse() {
 	// Collapse the space
-	window.parent.postMessage({ adexHeight: 0 }, '*')
+	window.parent.postMessage({ adexHeight: 0 }, "*")
 }
 
-function initWithOptions(options, element) {
+function initWithOptions(options) {
 	// basic headless detection
-	if (
-		navigator.webdriver ||
-		!(Array.isArray(navigator.languages) && navigator.languages.length)
-	) {
+	if (navigator.webdriver || !(Array.isArray(navigator.languages) && navigator.languages.length)) {
 		collapse()
 		return
 	}
@@ -35,10 +32,7 @@ function initWithOptions(options, element) {
 	const historyKey = `history_${options.publisherAddr}`
 	const history = safeJSONParse(localStorage[historyKey], [])
 	const now = Date.now()
-	if (
-		history.filter(({ time }) => now - time < MAX_AUCTIONS_CAP.timeframe)
-			.length >= MAX_AUCTIONS_CAP.limit
-	) {
+	if (history.filter(({ time }) => now-time < MAX_AUCTIONS_CAP.timeframe).length >= MAX_AUCTIONS_CAP.limit) {
 		console.log('AdEx: ad auctions limit exceeded')
 		collapse()
 		return
@@ -55,64 +49,52 @@ function initWithOptions(options, element) {
 
 	// construct the AdView manager with existing history, select the next ad unit, display it
 	const mgr = new AdViewManager((url, o) => fetch(url, o), options, history)
-	mgr
-		.getNextAdUnit()
-		.then((u) => {
-			const referrerNeeded = window.location !== window.parent.location
-			if (
-				u &&
-				Array.isArray(u.acceptedReferrers) &&
-				referrerNeeded &&
-				!document.referrer.startsWith('https://localhost:8080') &&
-				!u.acceptedReferrers.some((ref) => document.referrer.startsWith(ref))
-			) {
-				// @TODO: more correct detection
-				if (document.referrer.includes('//localhost')) {
-					const size = `${mgr.options.width}x${mgr.options.height}`
-					element.innerHTML = `<img src="/dev-banners/${size}.jpg" alt="AdEx development banner" width="${mgr.options.width}" height="${mgr.options.height}">`
-				} else {
-					console.log(
-						`AdEx: domain verification error; possible reasons: ad slot installed on wrong website (referrer), no-referrer policy is being used, or the verification DNS TXT record is no longer found`
-					)
-					collapse()
-				}
-				return
-			}
-			if (u) {
-				element.innerHTML = u.html
+	mgr.getNextAdUnit().then(u => {
+		const referrerNeeded = window.location !== window.parent.location
+		if (u && Array.isArray(u.acceptedReferrers)
+			&& referrerNeeded
+			&& !document.referrer.startsWith('https://localhost:8080')
+			&& !u.acceptedReferrers.some(ref => document.referrer.startsWith(ref))
+		) {
+			// @TODO: more correct detection
+			if (document.referrer.includes('//localhost')) {
+				const size = `${mgr.options.width}x${mgr.options.height}`
+				document.body.innerHTML = `<img src="/dev-banners/${size}.jpg" alt="AdEx development banner" width="${mgr.options.width}" height="${mgr.options.height}">`
 			} else {
-				console.log(`AdEx: no ad demand for slot (${options.marketSlot})`)
+				console.log(`AdEx: ad slot installed on wrong website (referrer) or no-referrer policy is being used`)
+				collapse()
 			}
-			if (window.parent) {
-				const height = u ? options.height : 0
-				const m = { adexHeight: height }
-				window.parent.postMessage(m, '*')
-			}
-			// Persist the history, which is needed for proper stickiness across refreshes
-			// and to set adView.secondsSinceCampaignImpression
-			localStorage[historyKey] = JSON.stringify(mgr.history)
-		})
-		.catch((e) => {
-			console.error(e)
-			collapse()
-		})
+			return
+		}
+		if (u) {
+			document.body.innerHTML = u.html
+		} else {
+			console.log(`AdEx: no ad demand for slot (${options.marketSlot})`)
+		}
+		if (window.parent) {
+			const height = u ? options.height : 0
+			const m = { adexHeight: height }
+			window.parent.postMessage(m, "*")
+		}
+		// Persist the history, which is needed for proper stickiness across refreshes
+		// and to set adView.secondsSinceCampaignImpression
+		localStorage[historyKey] = JSON.stringify(mgr.history)
+	}).catch(e => {
+		console.error(e)
+		collapse()
+	})
 	document.body.style = 'margin: 0px;'
 }
 
-window.addEventListener('load', function () {
-	const containers = document.getElementsByClassName('adex-container')
-	Array.from(containers).forEach((element, idx) => {
-		const paramsStr = element.getAttribute('params') || location.hash.slice(1)
-		if (!paramsStr) {
-			throw new Error(
-				`no params supplied for container ${
-					idx + 1
-				}; if used in iframe use /#/${'${JSON.stringify(params)}'}`
-			)
-		} else {
-			const params = JSON.parse(decodeURIComponent(paramsStr))
-			const { options } = params
-			initWithOptions(options, element)
-		}
-	})
-})
+try {
+	const paramsStr = location.hash.slice(1)
+	if (!paramsStr) {
+		throw new Error('no params supplied; use /#/${JSON.stringify(params)}')
+	}
+	const params = JSON.parse(decodeURIComponent(paramsStr))
+	const { options } = params
+	initWithOptions(options)
+} catch (e) {
+	// @TODO link to the documentation here
+	console.error('Failed parsing input parameters', e)
+}
