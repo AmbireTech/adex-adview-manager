@@ -9,6 +9,7 @@
     "prepublish": "tsc",
     "build": "tsc && time webpack --mode production",
     "start": "tsc && time webpack --mode production && http-server --cors dist.browser",
+    "example-with-js": "http-server example.html",
     "deploy-adex": "npm run build && cp -rf ./dev-banners ./domains/adex/CNAME ./dist.browser && cp dnt-policy.txt dist.browser/ && gh-pages -d dist.browser",
     "deploy": "npm run build && cp -rf ./dev-banners ./domains/moonicorn/CNAME ./dist.browser && cp dnt-policy.txt dist.browser/ && gh-pages -d dist.browser -r git@github.com:AdExNetwork/adex-adview-manager-host.git"
   },
