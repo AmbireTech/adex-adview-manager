@@ -99,20 +99,7 @@ function initWithOptions(options, element) {
   document.body.style = "margin: 0px;";
 }
 
-// try {
-//   const paramsStr = location.hash.slice(1);
-//   if (!paramsStr) {
-//     throw new Error("no params supplied; use /#/${JSON.stringify(params)}");
-//   }
-//   const params = JSON.parse(decodeURIComponent(paramsStr));
-//   const { options } = params;
-//   initWithOptions(options);
-// } catch (e) {
-//   // @TODO link to the documentation here
-//   console.error("Failed parsing input parameters", e);
-// }
-
-window.addEventListener("load", function (event) {
+window.addEventListener("load", function () {
   const containers = document.getElementsByClassName("adex-container");
   Array.from(containers).forEach((element, idx) => {
     const paramsStr = element.getAttribute("params") || location.hash.slice(1);
