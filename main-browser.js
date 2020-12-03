@@ -20,7 +20,7 @@ function collapse() {
   window.parent.postMessage({ adexHeight: 0 }, "*");
 }
 
-function initWithOptions(options) {
+function initWithOptions(options, element) {
   // basic headless detection
   if (
     navigator.webdriver ||
@@ -69,7 +69,7 @@ function initWithOptions(options) {
         // @TODO: more correct detection
         if (document.referrer.includes("//localhost")) {
           const size = `${mgr.options.width}x${mgr.options.height}`;
-          document.body.innerHTML = `<img src="/dev-banners/${size}.jpg" alt="AdEx development banner" width="${mgr.options.width}" height="${mgr.options.height}">`;
+          element.innerHTML = `<img src="/dev-banners/${size}.jpg" alt="AdEx development banner" width="${mgr.options.width}" height="${mgr.options.height}">`;
         } else {
           console.log(
             `AdEx: domain verification error; possible reasons: ad slot installed on wrong website (referrer), no-referrer policy is being used, or the verification DNS TXT record is no longer found`
@@ -79,7 +79,7 @@ function initWithOptions(options) {
         return;
       }
       if (u) {
-        document.body.innerHTML = u.html;
+        element.innerHTML = u.html;
       } else {
         console.log(`AdEx: no ad demand for slot (${options.marketSlot})`);
       }
@@ -114,24 +114,18 @@ function initWithOptions(options) {
 
 window.addEventListener("load", function (event) {
   const containers = document.getElementsByClassName("adex-container");
-  //   for (let i = 0; i < containers.length; i++) {
-  //     containers[0].innerHTML = `<a href='#'>test ${i + 1}</a>`;
-  //   }
-  Array.from(containers).forEach((e) => {
-    e.innerHTML = `<a href='#'>test</a>`;
+  Array.from(containers).forEach((element, idx) => {
+    const paramsStr = element.getAttribute("params") || location.hash.slice(1);
+    if (!paramsStr) {
+      throw new Error(
+        `no params supplied for container ${
+          idx + 1
+        }; if used in iframe use /#/${"${JSON.stringify(params)}"}`
+      );
+    } else {
+      const params = JSON.parse(decodeURIComponent(paramsStr));
+      const { options } = params;
+      initWithOptions(options, element);
+    }
   });
-  //   console.log(containers[0]);
-  //   containers.forEach((element) => {
-  //     console.log(element);
-  //   });
-  //   containers.forEach((e) => {
-  //   containers[0].innerHTML = "<a href='#'>test</a>";
-  //   });
-  console.log("We have loaded the page");
-  console.log(containers);
 });
-
-// TODO:
-/**
- * init all divs on page with attributes
- */
