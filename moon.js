@@ -15,18 +15,12 @@ function safeJSONParse(json, defaultVal) {
 	}
 }
 
-function collapse() {
-	// Collapse the space
-	window.parent.postMessage({ adexHeight: 0 }, '*')
-}
-
 function initWithOptions(options, element) {
 	// basic headless detection
 	if (
 		navigator.webdriver ||
 		!(Array.isArray(navigator.languages) && navigator.languages.length)
 	) {
-		collapse()
 		return
 	}
 
@@ -40,7 +34,6 @@ function initWithOptions(options, element) {
 			.length >= MAX_AUCTIONS_CAP.limit
 	) {
 		console.log('AdEx: ad auctions limit exceeded')
-		collapse()
 		return
 	}
 
@@ -74,7 +67,6 @@ function initWithOptions(options, element) {
 					console.log(
 						`AdEx: domain verification error; possible reasons: ad slot installed on wrong website (referrer), no-referrer policy is being used, or the verification DNS TXT record is no longer found`
 					)
-					collapse()
 				}
 				return
 			}
@@ -83,20 +75,13 @@ function initWithOptions(options, element) {
 			} else {
 				console.log(`AdEx: no ad demand for slot (${options.marketSlot})`)
 			}
-			if (window.parent) {
-				const height = u ? options.height : 0
-				const m = { adexHeight: height }
-				window.parent.postMessage(m, '*')
-			}
 			// Persist the history, which is needed for proper stickiness across refreshes
 			// and to set adView.secondsSinceCampaignImpression
 			localStorage[historyKey] = JSON.stringify(mgr.history)
 		})
 		.catch((e) => {
 			console.error(e)
-			collapse()
 		})
-	element.style = 'margin: 0px;'
 }
 
 window.addEventListener('load', function () {
