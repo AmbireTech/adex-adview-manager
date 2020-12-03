@@ -61,7 +61,7 @@ function initWithOptions(options) {
 				const size = `${mgr.options.width}x${mgr.options.height}`
 				document.body.innerHTML = `<img src="/dev-banners/${size}.jpg" alt="AdEx development banner" width="${mgr.options.width}" height="${mgr.options.height}">`
 			} else {
-				console.log(`AdEx: ad slot installed on wrong website (referrer) or no-referrer policy is being used`)
+				console.log(`AdEx: domain verification error; possible reasons: ad slot installed on wrong website (referrer), no-referrer policy is being used, or the verification DNS TXT record is no longer found`)
 				collapse()
 			}
 			return
