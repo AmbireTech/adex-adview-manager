@@ -7,7 +7,7 @@ try {
 	}
 	const params = JSON.parse(decodeURIComponent(paramsStr))
 	const { options } = params
-	initWithOptions(options, document.body)
+	initWithOptions(options, document.body, true)
 } catch (e) {
 	// @TODO link to the documentation here
 	console.error('Failed parsing input parameters', e)
