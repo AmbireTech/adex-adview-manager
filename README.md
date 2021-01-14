@@ -71,6 +71,8 @@ webpack --mode production
 ```
 http-server --cors dist.browser/
 ```
+### test js-example
+[http://127.0.0.1:8080/js-example.html](http://127.0.0.1:8080/js-example.html)
 
 ### iframe parameters
 
@@ -82,6 +84,7 @@ const options = {
 }
 const url = `index.html#${encodeURIComponent(JSON.stringify({ options }))}`
 ```
+
 
 
 ### iframes
