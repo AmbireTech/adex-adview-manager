@@ -36,8 +36,8 @@ run()
 For the available options, see https://github.com/AdExNetwork/adex-adview-manager/blob/master/src/main.ts#L18
 
 Brief description of each one:
-
-* `marketURL`: URL to the AdEx market; defaults to `"https://market.moonicorn.network"`
+backendURL
+* `backendURL`: URL to the AdEx market; defaults to `"https://backend.moonicorn.network"`
 * `acceptedStates`: array of accepted campaign states; defaults to `['Active', 'Ready']`
 * `minPerImpression`: minimum payment amount per impression; defaults to `'0'`
 * `minTargetingScore`: minimum targeting score to show an ad unit; defaults to `0`
