@@ -1,8 +1,5 @@
 const { AdViewManager } = require('./lib/main')
 
-// limiting to 2 ad auctions per last 10 seconds
-const MAX_AUCTIONS_CAP = { timeframe: 10000, limit: 2 }
-
 // Usually this is not a good tradeoff ("fail-fast") but when it comes to ad impressions,
 // we'd rather not lose the impression in case of a corrupted JSON
 function safeJSONParse(json, defaultVal) {
@@ -17,7 +14,7 @@ function safeJSONParse(json, defaultVal) {
 
 function collapse(shouldCollapse) {
 	// Collapse the space
-	if (shouldCollapse) window.parent.postMessage({ adexHeight: 0 }, "*");
+	if (shouldCollapse) window.parent.postMessage({ adexViewMangerHeight: 0 }, "*");
 }
 
 function initWithOptions(options, element, shouldCollapse = true) {
@@ -26,20 +23,6 @@ function initWithOptions(options, element, shouldCollapse = true) {
 		navigator.webdriver ||
 		!(Array.isArray(navigator.languages) && navigator.languages.length)
 	) {
-		collapse(shouldCollapse);
-		return;
-	}
-
-	// Apply auctions limit
-	// This is done to stop abuse from publishers with multiple ads on the page
-	const historyKey = `history_${options.publisherAddr}`;
-	const history = safeJSONParse(localStorage[historyKey], []);
-	const now = Date.now();
-	if (
-		history.filter(({ time }) => now - time < MAX_AUCTIONS_CAP.timeframe)
-			.length >= MAX_AUCTIONS_CAP.limit
-	) {
-		console.log("AdEx: ad auctions limit exceeded");
 		collapse(shouldCollapse);
 		return;
 	}
@@ -54,17 +37,16 @@ function initWithOptions(options, element, shouldCollapse = true) {
 	options.navigatorLanguage = navigator.language;
 
 	// construct the AdView manager with existing history, select the next ad unit, display it
-	const mgr = new AdViewManager((url, o) => fetch(url, o), options, history);
+	const mgr = new AdViewManager((url, o) => fetch(url, o), options);
 	mgr
-		.getNextAdUnit()
+		.getBidData()
 		.then((u) => {
 			const referrerNeeded = window.location !== window.parent.location;
 			if (
-				u &&
-				Array.isArray(u.acceptedReferrers) &&
-				referrerNeeded &&
-				!document.referrer.startsWith("https://localhost:8080") &&
-				!u.acceptedReferrers.some((ref) => document.referrer.startsWith(ref))
+				u
+				&& referrerNeeded
+				&& !document.referrer.startsWith("https://localhost:8080")
+				// && document.referrer.startsWith(mgr.options.acceptedReferrer)
 			) {
 				// @TODO: more correct detection
 				if (document.referrer.includes("//localhost")) {
@@ -81,16 +63,13 @@ function initWithOptions(options, element, shouldCollapse = true) {
 			if (u) {
 				element.innerHTML = u.html;
 			} else {
-				console.log(`AdEx: no ad demand for slot (${options.marketSlot})`);
+				console.log(`AdEx: error getting creative data`);
 			}
 			if (window.parent) {
 				const height = u ? options.height : 0;
-				const m = { adexHeight: height };
+				const m = { adexViewMangerHeight: height };
 				window.parent.postMessage(m, "*");
 			}
-			// Persist the history, which is needed for proper stickiness across refreshes
-			// and to set adView.secondsSinceCampaignImpression
-			localStorage[historyKey] = JSON.stringify(mgr.history);
 		})
 		.catch((e) => {
 			console.error(e);
