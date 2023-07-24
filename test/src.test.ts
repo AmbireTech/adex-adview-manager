@@ -8,7 +8,7 @@ const options = {
 	publisherAddr: '0x13e72959d8055dafa6525050a8cc7c479d4c09a3',
 	width: 300,
 	height: 100,
-	marketURL: 'https://market.adex.network',
+	backendURL: 'https://market.adex.network',
 	marketSlot: 'madeup',
 	whitelistedTokens: [whitelistedToken],
 }
