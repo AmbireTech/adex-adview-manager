@@ -1,37 +1,34 @@
-import { BN } from 'bn.js'
-import { evaluateMultiple } from './rules'
-import { targetingInputGetter } from './helpers'
-
 export const IPFS_GATEWAY = 'https://ipfs.moonicorn.network/ipfs/'
 
 // How much time to wait before sending out an impression event
 // Related: https://github.com/AdExNetwork/adex-adview-manager/issues/17, https://github.com/AdExNetwork/adex-adview-manager/issues/35, https://github.com/AdExNetwork/adex-adview-manager/issues/46
 const WAIT_FOR_IMPRESSION = 8000
-// The number of impressions (won auctions) kept in history
-const HISTORY_LIMIT = 50
-// Impression "stickiness" time: see https://github.com/AdExNetwork/adex-adview-manager/issues/65
-// 4 minutes allows ~4 campaigns to rotate, considering a default frequency cap of 15 minutes
-const IMPRESSION_STICKINESS_TIME = 240000
 
 const defaultOpts = {
-	marketURL: 'https://market.moonicorn.network',
-	whitelistedTokens: ['0x6B175474E89094C44Da98b954EedeAC495271d0F'],
+	backendURL: 'https://backend.moonicorn.network',
 	disableVideo: false,
 }
 
 interface AdViewManagerOptions {
 	// Defaulted via defaultOpts
-	marketURL: string,
-	// Must be passed (except the ones with ?)
-	marketSlot: string,
-	publisherAddr: string,
-	// All passed tokens must be of the same price and decimals, so that the amounts can be accurately compared
-	whitelistedTokens?: Array<string>,
+	backendURL: string,
 	width?: number,
 	height?: number,
 	navigatorLanguage?: string,
 	disableVideo?: boolean,
-	disableSticky?: boolean,
+	// new ones
+	provider: string,
+	publisher: string,
+	siteId?: string,
+	siteName?: string,
+	appId?: string,
+	appName?: string,
+	reqId: string,
+	bidId: string,
+	seatId: string,
+	impId: string,
+	acceptedRefferer?: string
+	
 }
 
 interface Unit {
@@ -39,13 +36,6 @@ interface Unit {
 	mediaUrl: string,
 	mediaMime: string,
 	targetUrl: string,
-}
-
-interface HistoryEntry {
-	time: number,
-	unitId: string,
-	campaignId: string,
-	slotId: string,
 }
 
 export function normalizeUrl(url: string): string {
@@ -57,9 +47,9 @@ function imageHtml({ onLoadCode, size, imgUrl }): string {
 	return `<img loading="lazy" src="${imgUrl}" alt="AdEx ad" rel="nofollow" onload="${onLoadCode}" ${size}>`
 }
 
-function videoHtml({ onLoadCode, size, imgUrl, mediaMime }): string {
+function videoHtml({ onLoadCode, size, imgUrl, creativeMime }): string {
 	return `<video ${size} loop autoplay onloadeddata="${onLoadCode}" muted>` +
-		`<source src="${imgUrl}" type="${mediaMime}">` +
+		`<source src="${imgUrl}" type="${creativeMime}">` +
 		`</video>`
 }
 
@@ -86,175 +76,76 @@ function isVideo(unit: Unit): boolean {
 	return (unit.mediaMime || '').split('/')[0] === 'video'
 }
 
-function randomizedSortPos(unit: Unit, seed: BN): BN {
-	// using base32 is technically wrong (IDs are in base 58), but it works well enough for this purpose
-	// kind of a LCG PRNG but without the state; using GCC's constraints as seen on stack overflow
-	// takes around ~700ms for 100k iterations, yields very decent distribution (e.g. 724ms 50070, 728ms 49936)
-	return new BN(unit.id, 32).mul(seed).add(new BN(12345)).mod(new BN(0x80000000))
-}
-
-function getUnitHTML({ width, height }: AdViewManagerOptions, { unit, hostname, onLoadCode = '', onClickCode = '' }): string {
-	const imgUrl = normalizeUrl(unit.mediaUrl)
+function getUnitHTML({ width, height }: AdViewManagerOptions, { clickUrl, creativeUrl, creativeMime, onLoadCode = '', onClickCode = '' }): string {
+	const imgUrl = normalizeUrl(creativeUrl)
 	const size = `width=${width} height=${height} style="width: 100%; height: auto;"`
 	// @TODO click protection page
-	const finalTargetUrl = unit.targetUrl.replace('utm_source=adex_PUBHOSTNAME', `utm_source=AdEx+(${hostname})`)
 	return `<div
 			style="position: relative; overflow: hidden; ${(width && height) ? `max-width: ${width}px; min-width: ${width/2}px; height: ${height}px;` : ''}"
 		>`
-		+ `<a href="${finalTargetUrl}" target="_blank" onclick="${onClickCode}" rel="noopener noreferrer">`
-		+ (isVideo(unit)
-			? videoHtml({ onLoadCode, size, imgUrl, mediaMime: unit.mediaMime })
+		+ `<a href="${clickUrl}" target="_blank" onclick="${onClickCode}" rel="noopener noreferrer">`
+		+ (isVideo(creativeMime)
+			? videoHtml({ onLoadCode, size, imgUrl, creativeMime })
 			: imageHtml({ onLoadCode, size, imgUrl }))
 		+ `</a>`
 		+ adexIcon()
 		+ `</div>`
 }
 
-export function getUnitHTMLWithEvents(options: AdViewManagerOptions, { unit, hostname, campaignId, validators, noImpression = false }): string {
-	const getBody = (evType) => `JSON.stringify({ events: [{ type: '${evType}', publisher: '${options.publisherAddr}', adUnit: '${unit.id}', adSlot: '${options.marketSlot}', ref: document.referrer }] })`
-	const getFetchCode = (evType) => `var fetchOpts = { method: 'POST', headers: { 'content-type': 'application/json' }, body: ${getBody(evType)} };` + validators
-		.map(({ url }) => {
-			const fetchUrl = `${url}/channel/${campaignId}/events?pubAddr=${options.publisherAddr}`
-			return `fetch('${fetchUrl}',fetchOpts)`
-		})
-		.join(';')
+export function getUnitHTMLWithEvents(options: AdViewManagerOptions, {clickUrl, creativeUrl, creativeMime,  noImpression = false }): string {
+	const fetchUrl = `${options.backendURL}/viewmanager/bid`
+	const getBody = (evType) => `JSON.stringify({ events: [{ type: '${evType}', reqid: '${options.reqId}', bidid: '${options.bidId}', impid: '${options.impId}', seatid: '${options.seatId}', ref: document.referrer }] })`
+	const getFetchCode = (evType) => `var fetchOpts = { method: 'POST', headers: { 'content-type': 'application/json' }, body: ${getBody(evType)} }; fetch('${fetchUrl}',fetchOpts);` 
 	const getTimeoutCode = (evType) => `setTimeout(function() {${getFetchCode(evType)}}, ${WAIT_FOR_IMPRESSION})`
-	return getUnitHTML(options, { unit, hostname, onLoadCode: noImpression ? '' : getTimeoutCode('IMPRESSION'), onClickCode: getFetchCode('CLICK') })
+	return getUnitHTML(options, { clickUrl, creativeUrl, creativeMime, onLoadCode: noImpression ? '' : getTimeoutCode('IMPRESSION'), onClickCode: getFetchCode('CLICK') })
 }
 
 export class AdViewManager {
 	private fetch: any
 	private options: AdViewManagerOptions
-	public history: HistoryEntry[]
-	constructor(fetch, opts: AdViewManagerOptions, history: HistoryEntry[] = []) {
+
+	constructor(fetch, opts: AdViewManagerOptions) {
 		this.fetch = fetch
 		this.options = { ...defaultOpts, ...opts }
-		this.history = history
 		// There's no check for the other properties, but we can actually function without most of them since there's defaults
-		if (!(this.options.marketSlot && this.options.publisherAddr)) throw new Error('marketSlot and publisherAddr options required')
-	}
-	private getTargetingInput(targetingInputBase: any, campaign: any): any {
-		const lastImpression = [...this.history].reverse().find(({ campaignId }) => campaignId === campaign.id)
-		return  {
-			...targetingInputBase,
-			'adView.navigatorLanguage': this.options.navigatorLanguage,
-			'adView.secondsSinceCampaignImpression': lastImpression
-				? Math.floor((Date.now() - lastImpression.time) / 1000)
-				: Infinity
+		if (!(
+			this.options.reqId &&
+			this.options.bidId &&
+			this.options.seatId &&
+			this.options.impId &&
+			this.options.acceptedRefferer
+			)) {
+			throw new Error('backend options required {reqId, bidId, seatId, impId,  }')
 		}
 	}
-	private getStickyAdUnit(campaigns: any, hostname: string): any {
-		if (this.options.disableSticky) return null
 
-		const stickinessThreshold = Date.now() - IMPRESSION_STICKINESS_TIME
-		const stickyEntry = this.history.find(entry =>
-			entry.time > stickinessThreshold
-				&& entry.slotId === this.options.marketSlot
-		)
-		if (stickyEntry) {
-			const stickyCampaign = campaigns.find(campaign => campaign.id === stickyEntry.campaignId)
-			// Campaign couldn't be found, it means it's no longer active (either expired or unsound)
-			// in both cases, we don't want to be showing it
-			if (!stickyCampaign) return null
-			const { unit } = stickyCampaign.unitsWithPrice.find(x => x.unit.id === stickyEntry.unitId)
-			return {
-				unit,
-				price: '0',
-				html: getUnitHTMLWithEvents(this.options, {
-					unit,
-					hostname,
-					validators: stickyCampaign.spec.validators,
-					campaignId: stickyCampaign.id,
-					noImpression: true
-				}),
-				isSticky: true
-			}
+	async getCreative(): Promise<any> {
+		const { backendURL, reqId , bidId, impId, seatId} = this.options
+		const queryParams = {
+			reqid: reqId,
+			bidid: bidId,
+			impid: impId,
+			seatid: seatId,
+			ref: document.referrer
 		}
-		return null
-	}
-	private isCampaignSticky(campaign: any): boolean {
-		if (this.options.disableSticky) return false
-		const stickinessThreshold = Date.now() - IMPRESSION_STICKINESS_TIME
-		return !!this.history.find(entry => entry.time > stickinessThreshold && entry.campaignId === campaign.id)
-	}
-	async getMarketDemandResp(): Promise<any> {
-		const marketURL = this.options.marketURL
-		const depositAsset = this.options.whitelistedTokens.map(tokenAddr => `&depositAsset=${tokenAddr}`).join('')
-		// @NOTE not the same as the WAF generator script in the Market (which uses `.slice(2, 12)`)
-		const pubPrefix = this.options.publisherAddr.slice(2, 10)
-		const url = `${marketURL}/units-for-slot/${this.options.marketSlot}?pubPrefix=${pubPrefix}${depositAsset}`
+
+		const querystr = Object.entries(queryParams).map(([key, value]) => `${key}=${encodeURIComponent(value)}`).join('&')
+		
+		const url = `${backendURL}/adms?${querystr}`
 		const r = await this.fetch(url)
-		if (r.status !== 200) throw new Error(`market returned status code ${r.status} at ${url}`)
+		if (r.status !== 200) throw new Error(`backend returned status code ${r.status} at ${url}`)
 		return r.json()
 	}
-	async getNextAdUnit(): Promise<any> {
-		const { campaigns, targetingInputBase, acceptedReferrers, fallbackUnit } = await this.getMarketDemandResp()
-		const hostname = targetingInputBase['adSlot.hostname']
 
-		// Stickiness is when we keep showing an ad unit for a slot for some time in order to achieve fair impression value
-		// see https://github.com/AdExNetwork/adex-adview-manager/issues/65
-		const stickyResult = this.getStickyAdUnit(campaigns, hostname)
-		if (stickyResult) return { ...stickyResult, acceptedReferrers }
-
-		// If two or more units result in the same price, apply random selection between them: this is why we need the seed
-		const seed = new BN(Math.random() * (0x80000000 - 1))
-
-		// Apply targeting, now with adView.* variables, and sort the resulting ad units
-		const unitsWithPrice = campaigns
-			.map(campaign => {
-				if (this.isCampaignSticky(campaign)) return []
-
-				const campaignInputBase = this.getTargetingInput(targetingInputBase, campaign)
-				const campaignInput = targetingInputGetter.bind(null, campaignInputBase, campaign)
-				const onTypeErr = (e, rule) => console.error(`WARNING: rule for ${campaign.id} failing with:`, rule, e)
-				return campaign.unitsWithPrice.filter(({ unit, price }) => {
-					const input = campaignInput.bind(null, unit)
-					const output = {
-						show: true,
-						'price.IMPRESSION': new BN(price),
-					}
-					// NOTE: not using the price from the output on purpose
-					// we trust what the server gives us since otherwise we may end up changing the price based on
-					// adView-specific variables, which won't be consistent with the validator's price
-					return evaluateMultiple(input, output, campaign.targetingRules, onTypeErr).show
-				}).map(x => ({ ...x, campaignId: campaign.id }))
-			})
-			.reduce((a, b) => a.concat(b), [])
-			.filter(x => !(this.options.disableVideo && isVideo(x.unit)))
-			.sort((b, a) =>
-				new BN(a.price).cmp(new BN(b.price))
-					|| randomizedSortPos(a.unit, seed).cmp(randomizedSortPos(b.unit, seed))
-			)
-
-		// Update history
-		const auctionWinner = unitsWithPrice[0]
-		if (auctionWinner) {
-			this.history.push({
-				time: Date.now(),
-				slotId: this.options.marketSlot,
-				unitId: auctionWinner.unit.id,
-				campaignId: auctionWinner.campaignId,
-			})
-			this.history = this.history.slice(-HISTORY_LIMIT)
-		}
+	async getBidData(): Promise<any> {
+		const { creativeUrl, clickUrl, creativeMime } = await this.getCreative()
+	
 
 		// Return the results, with a fallback unit if there is one
-		if (auctionWinner) {
-			const { unit, price, campaignId } = auctionWinner
-			const { validators } = campaigns.find(x => x.id === campaignId).spec
+		if (creativeUrl &&  clickUrl ) {
+
 			return {
-				unit,
-				price,
-				acceptedReferrers,
-				html: getUnitHTMLWithEvents(this.options, { unit, hostname, campaignId, validators })
-			}
-		} else if (fallbackUnit) {
-			const unit = fallbackUnit
-			return {
-				unit,
-				price: '0',
-				acceptedReferrers,
-				html: getUnitHTML(this.options, { unit, hostname })
+				html: getUnitHTMLWithEvents(this.options, { clickUrl, creativeUrl, creativeMime })
 			}
 		} else {
 			return null
