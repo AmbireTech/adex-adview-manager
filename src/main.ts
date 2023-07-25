@@ -18,8 +18,8 @@ interface AdViewManagerOptions {
 	height?: number,
 	navigatorLanguage?: string,
 	// new ones
-	provider: string,
-	publisher: string,
+	provider?: string,
+	publisher?: string,
 	siteId?: string,
 	siteName?: string,
 	appId?: string,
