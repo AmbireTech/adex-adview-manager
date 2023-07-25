@@ -1,5 +1,5 @@
 const path = require('path')
-const SriPlugin = require('webpack-subresource-integrity')
+const { SubresourceIntegrityPlugin } = require("webpack-subresource-integrity")
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 
 module.exports = {
@@ -26,7 +26,7 @@ module.exports = {
 			template: 'js-example.ejs',
 			filename: 'js-example.html'
 		}),
-		new SriPlugin({
+		new SubresourceIntegrityPlugin({
 			hashFuncNames: ['sha256', 'sha384'],
 			enabled: true
 		})
