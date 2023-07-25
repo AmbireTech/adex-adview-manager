@@ -12,10 +12,11 @@ const defaultOpts = {
 interface AdViewManagerOptions {
 	// Defaulted via defaultOpts
 	backendURL: string,
+	disableVideo?: boolean,
+
 	width?: number,
 	height?: number,
 	navigatorLanguage?: string,
-	disableVideo?: boolean,
 	// new ones
 	provider: string,
 	publisher: string,
@@ -28,14 +29,7 @@ interface AdViewManagerOptions {
 	seatId: string,
 	impId: string,
 	acceptedRefferer?: string
-	
-}
 
-interface Unit {
-	id: string,
-	mediaUrl: string,
-	mediaMime: string,
-	targetUrl: string,
 }
 
 export function normalizeUrl(url: string): string {
@@ -44,7 +38,7 @@ export function normalizeUrl(url: string): string {
 }
 
 function imageHtml({ onLoadCode, size, imgUrl }): string {
-	return `<img loading="lazy" src="${imgUrl}" alt="AdEx ad" rel="nofollow" onload="${onLoadCode}" ${size}>`
+	return `<img loading="lazy" src="${imgUrl}" alt="Powered by AdEx DSP" rel="nofollow" onload="${onLoadCode}" ${size}>`
 }
 
 function videoHtml({ onLoadCode, size, imgUrl, creativeMime }): string {
@@ -54,7 +48,7 @@ function videoHtml({ onLoadCode, size, imgUrl, creativeMime }): string {
 }
 
 function adexIcon(): string {
-	return `<a href="https://www.adex.network" target="_blank" rel="noopener noreferrer"
+	return `<a href="https://www.adex.network" target="_blank" alt="AdEx DSP" rel="noopener noreferrer"
 			style="position: absolute; top: 0; right: 0;"
 		>`
 		+ `<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="18px"
@@ -72,8 +66,8 @@ function adexIcon(): string {
 		+ `</a>`
 }
 
-function isVideo(unit: Unit): boolean {
-	return (unit.mediaMime || '').split('/')[0] === 'video'
+function isVideo(mime: string): boolean {
+	return (mime || '').split('/')[0] === 'video'
 }
 
 function getUnitHTML({ width, height }: AdViewManagerOptions, { clickUrl, creativeUrl, creativeMime, onLoadCode = '', onClickCode = '' }): string {
@@ -81,7 +75,7 @@ function getUnitHTML({ width, height }: AdViewManagerOptions, { clickUrl, creati
 	const size = `width=${width} height=${height} style="width: 100%; height: auto;"`
 	// @TODO click protection page
 	return `<div
-			style="position: relative; overflow: hidden; ${(width && height) ? `max-width: ${width}px; min-width: ${width/2}px; height: ${height}px;` : ''}"
+			style="position: relative; overflow: hidden; ${(width && height) ? `max-width: ${width}px; min-width: ${width / 2}px; height: ${height}px;` : ''}"
 		>`
 		+ `<a href="${clickUrl}" target="_blank" onclick="${onClickCode}" rel="noopener noreferrer">`
 		+ (isVideo(creativeMime)
@@ -92,10 +86,10 @@ function getUnitHTML({ width, height }: AdViewManagerOptions, { clickUrl, creati
 		+ `</div>`
 }
 
-export function getUnitHTMLWithEvents(options: AdViewManagerOptions, {clickUrl, creativeUrl, creativeMime,  noImpression = false }): string {
+export function getUnitHTMLWithEvents(options: AdViewManagerOptions, { clickUrl, creativeUrl, creativeMime, noImpression = false }): string {
 	const fetchUrl = `${options.backendURL}/viewmanager/bid`
 	const getBody = (evType) => `JSON.stringify({ events: [{ type: '${evType}', reqid: '${options.reqId}', bidid: '${options.bidId}', impid: '${options.impId}', seatid: '${options.seatId}', ref: document.referrer }] })`
-	const getFetchCode = (evType) => `var fetchOpts = { method: 'POST', headers: { 'content-type': 'application/json' }, body: ${getBody(evType)} }; fetch('${fetchUrl}',fetchOpts);` 
+	const getFetchCode = (evType) => `var fetchOpts = { method: 'POST', headers: { 'content-type': 'application/json' }, body: ${getBody(evType)} }; fetch('${fetchUrl}',fetchOpts);`
 	const getTimeoutCode = (evType) => `setTimeout(function() {${getFetchCode(evType)}}, ${WAIT_FOR_IMPRESSION})`
 	return getUnitHTML(options, { clickUrl, creativeUrl, creativeMime, onLoadCode: noImpression ? '' : getTimeoutCode('IMPRESSION'), onClickCode: getFetchCode('CLICK') })
 }
@@ -109,41 +103,38 @@ export class AdViewManager {
 		this.options = { ...defaultOpts, ...opts }
 		// There's no check for the other properties, but we can actually function without most of them since there's defaults
 		if (!(
-			this.options.reqId &&
-			this.options.bidId &&
-			this.options.seatId &&
-			this.options.impId &&
-			this.options.acceptedRefferer
-			)) {
+			this.options.reqId 
+			&& this.options.bidId
+			&& this.options.seatId
+			&& this.options.impId
+			//&& this.options.acceptedRefferer
+		)) {
 			throw new Error('backend options required {reqId, bidId, seatId, impId,  }')
 		}
 	}
 
 	async getCreative(): Promise<any> {
-		const { backendURL, reqId , bidId, impId, seatId} = this.options
+		const { backendURL, reqId, bidId, impId, seatId } = this.options
 		const queryParams = {
-			reqid: reqId,
-			bidid: bidId,
-			impid: impId,
-			seatid: seatId,
-			ref: document.referrer
+			reqId,
+			bidId,
+			impId,
+			seatId,
+			ref: document?.referrer
 		}
 
 		const querystr = Object.entries(queryParams).map(([key, value]) => `${key}=${encodeURIComponent(value)}`).join('&')
-		
-		const url = `${backendURL}/adms?${querystr}`
+		const url = `${backendURL}/viewmanager/bid?${querystr}`
 		const r = await this.fetch(url)
-		if (r.status !== 200) throw new Error(`backend returned status code ${r.status} at ${url}`)
+		if (r.status !== 200) throw new Error(`AdEx backend returned status code ${r.status} at ${url}`)
 		return r.json()
 	}
 
 	async getBidData(): Promise<any> {
 		const { creativeUrl, clickUrl, creativeMime } = await this.getCreative()
-	
 
 		// Return the results, with a fallback unit if there is one
-		if (creativeUrl &&  clickUrl ) {
-
+		if (creativeUrl && clickUrl) {
 			return {
 				html: getUnitHTMLWithEvents(this.options, { clickUrl, creativeUrl, creativeMime })
 			}
