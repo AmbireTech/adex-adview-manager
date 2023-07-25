@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "lib": ["es6", "es7", "es2017"],
+    "lib": ["es6", "es7", "es2017", "DOM"],
     "outDir": "lib",
     "target": "es5",
     "noUnusedLocals": true
