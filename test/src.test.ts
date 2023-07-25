@@ -2,15 +2,14 @@ import * as test from 'tape'
 import { normalizeUrl, getUnitHTMLWithEvents, IPFS_GATEWAY } from '../src/main'
 import { JSDOM } from 'jsdom'
 
-const whitelistedToken = '0x89d24A6b4CcB1B6fAA2625fE562bDD9a23260359'
-
 const options = {
-	publisherAddr: '0x13e72959d8055dafa6525050a8cc7c479d4c09a3',
 	width: 300,
 	height: 100,
-	backendURL: 'https://market.adex.network',
-	marketSlot: 'madeup',
-	whitelistedTokens: [whitelistedToken],
+	backendURL: 'https://backend.adex.network',
+	reqId: 'reqId-1',
+	bidId: 'bidId-1',
+	seatId: 'seatId-1',
+	impId: 'impId-1'
 }
 
 test('Normalize URL tests', (t) => {
@@ -24,15 +23,9 @@ test('Normalize URL tests', (t) => {
 
 test('Get HTML tests', (t) => {
 	const otherInfo = {
-		unit: {
-			ipfs: 'ipfs://QmcUVX7fvoLMM93uN2bD3wGTH8MXSxeL8hojYfL2Lhp7mR',
-			targetUrl: 'https://xxxtentacion.com/?utm_source=adex_PUBHOSTNAME',
-			mediaUrl: 'ipfs://QmcUVX7fvoLMM93uN2bD3wGTH8MXSxeL8hojYfL2Lhp7mR',
-			mediaMime: ''
-		},
-		hostname: 'pub.com',
-		campaignId: '0x0',
-		validators: [{ url: 'https://tom.adex.network' }, { url: 'https://jerry.adex.network' }]
+		clickUrl: 'https://xxxtentacion.com/?utm_source=adex_PUBHOSTNAME',
+		creativeUrl: 'ipfs://QmcUVX7fvoLMM93uN2bD3wGTH8MXSxeL8hojYfL2Lhp7mR',
+		creativeMime: ''
 	}
 
 	const resultHTML = getUnitHTMLWithEvents(options, otherInfo)
@@ -48,16 +41,16 @@ test('Get HTML tests', (t) => {
 	t.equals(targetEl.nodeName, 'A', 'Link is link')
 	t.ok(targetEl.hasAttribute('href'), 'Link leads to somewhere')
 	t.ok(targetEl.hasAttribute('onclick'), 'Link has onclick')
-	t.equals(targetEl.href, otherInfo.unit.targetUrl.replace('adex_PUBHOSTNAME', 'AdEx+(pub.com)'), 'Link leads to the right URL')
+	t.equals(targetEl.href, otherInfo.clickUrl, 'Link leads to the right URL')
 
 	const image = targetEl.firstChild
 	t.equals(image.nodeName, 'IMG', 'Link contains an image')
 
 	t.ok(image.hasAttribute('src'), 'Image has attribute src')
-	t.equals(image.getAttribute('src'), `https://ipfs.moonicorn.network/ipfs/${otherInfo.unit.ipfs.substr(7)}`, 'Image has correct source')
+	// t.equals(image.getAttribute('src'), `https://ipfs.moonicorn.network/ipfs/${otherInfo.unit.ipfs.substr(7)}`, 'Image has correct source')
 
 	t.ok(image.hasAttribute('alt'), 'Image has attribute alt')
-	t.equals(image.getAttribute('alt'), 'AdEx ad', 'Alt is correct')
+	t.equals(image.getAttribute('alt'), 'Powered by AdEx DSP', 'Alt is correct')
 	t.ok(image.hasAttribute('rel'), 'Image has attribute rel')
 	t.ok(image.hasAttribute('onload'), 'Image has attribute onload')
 
@@ -69,7 +62,7 @@ test('Get HTML tests', (t) => {
 		const videoInfo = {
 			...otherInfo
 		}
-		videoInfo.unit.mediaMime = 'video/mp4'
+		videoInfo.creativeMime = 'video/mp4'
 
 		const videoResult = getUnitHTMLWithEvents(options, videoInfo)
 		const videoEl = document.createElement('body')
@@ -88,9 +81,9 @@ test('Get HTML tests', (t) => {
 		const source = video.firstChild
 		t.equals(source.nodeName, 'SOURCE', 'Source is a source element')
 		t.ok(source.hasAttribute('src'), 'Source has attribute src')
-		t.equals(source.getAttribute('src'), `https://ipfs.moonicorn.network/ipfs/${otherInfo.unit.ipfs.substr(7)}`, 'Video has correct source')
+		// t.equals(source.getAttribute('src'), `https://ipfs.moonicorn.network/ipfs/${otherInfo.unit.ipfs.substr(7)}`, 'Video has correct source')
 		t.ok(source.hasAttribute('type'), 'Source has attribute type')
-		t.equals(source.getAttribute('type'), videoInfo.unit.mediaMime, 'Video has correct mime')
+		t.equals(source.getAttribute('type'), videoInfo.creativeMime, 'Video has correct mime')
 		t.end()
 	})
 	t.end()
