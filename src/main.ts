@@ -1,11 +1,11 @@
-export const IPFS_GATEWAY = 'https://ipfs.moonicorn.network/ipfs/'
+export const IPFS_GATEWAY = process.env.IPFS_GATEWAY || 'https://ipfs.moonicorn.network/ipfs/'
 
 // How much time to wait before sending out an impression event
 // Related: https://github.com/AdExNetwork/adex-adview-manager/issues/17, https://github.com/AdExNetwork/adex-adview-manager/issues/35, https://github.com/AdExNetwork/adex-adview-manager/issues/46
 const WAIT_FOR_IMPRESSION = 8000
 
 const defaultOpts = {
-	backendURL: 'https://backend.moonicorn.network',
+	backendURL: process.env.BACKEND_URL || 'https://backend.moonicorn.network',
 	disableVideo: false,
 }
 
