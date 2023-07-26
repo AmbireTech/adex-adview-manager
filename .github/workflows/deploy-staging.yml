@@ -27,7 +27,7 @@ jobs:
             BACKEND_URL: https://vhoda.moonicorn.network
 
       - name: Copy files
-        run: cp -rf ./dev-banners ./domains/moonicorn/CNAME ./dist.browser && cp dnt-policy.txt dist.browser/
+        run: cp -rf ./dev-banners ./dist.browser && cp dnt-policy.txt dist.browser/
 
       - name: Add .nojekyll file
         run: touch ./dist.browser/.nojekyll
@@ -39,4 +39,5 @@ jobs:
           publish_dir: ./dist.browser
           external_repository: AmbireTech/adex-adview-v5-host-moonicorn
           publish_branch: gh-pages
+          cname: viewmngr.moonicorn.network
           destination_dir: ./staging
