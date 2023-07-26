@@ -1,5 +1,6 @@
 const path = require('path')
 const { SubresourceIntegrityPlugin } = require("webpack-subresource-integrity")
+const Dotenv = require('dotenv-webpack')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 
 module.exports = {
@@ -29,6 +30,7 @@ module.exports = {
 		new SubresourceIntegrityPlugin({
 			hashFuncNames: ['sha256', 'sha384'],
 			enabled: true
-		})
+		}),
+		new Dotenv()
 	]
 }
