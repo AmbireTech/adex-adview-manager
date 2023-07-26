@@ -7,9 +7,7 @@
     "test": "ts-node node_modules/tape/bin/tape test/**/*.ts",
     "prepublish": "tsc",
     "build": "tsc && time webpack --mode production",
-    "start": "tsc && time webpack --mode production && http-server --cors dist.browser",
-    "deploy-adex": "npm run build && cp -rf ./dev-banners ./domains/adex/CNAME ./dist.browser && cp dnt-policy.txt dist.browser/ && gh-pages -d dist.browser",
-    "deploy": "npm run build && cp -rf ./dev-banners ./domains/moonicorn/CNAME ./dist.browser && cp dnt-policy.txt dist.browser/ && gh-pages -d dist.browser -r git@github.com:AdExNetwork/adex-adview-manager-host.git"
+    "start": "tsc && time webpack --mode production && http-server --cors dist.browser"
   },
   "repository": {
     "type": "git",
@@ -30,6 +28,7 @@
   "homepage": "https://github.com/AdExNetwork/adex-adview-manager#readme",
   "devDependencies": {
     "@types/tape": "^5.6.0",
+    "dotenv-webpack": "^8.0.1",
     "html-webpack-plugin": "^5.5.3",
     "jsdom": "^22.1.0",
     "node-fetch": "^3.3.2",
@@ -39,8 +38,5 @@
     "webpack": "^5.88.2",
     "webpack-cli": "^5.1.4",
     "webpack-subresource-integrity": "^5.2.0-rc.1"
-  },
-  "dependencies": {
-    "dotenv-webpack": "^8.0.1"
   }
 }
