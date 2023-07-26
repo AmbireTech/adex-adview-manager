@@ -31,6 +31,8 @@ module.exports = {
 			hashFuncNames: ['sha256', 'sha384'],
 			enabled: true
 		}),
-		new Dotenv()
+		new Dotenv({
+			systemvars: true
+		})
 	]
 }
