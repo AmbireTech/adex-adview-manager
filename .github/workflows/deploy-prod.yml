@@ -1,0 +1,51 @@
+name: Build and Deploy (prod 🍩🐼)
+on:
+  push:
+    branches:
+      - v5-main
+permissions: 
+  contents: write
+jobs:
+  build-and-deploy-degen:
+    concurrency: ci-${{ github.ref }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout 🛎️
+        uses: actions/checkout@v3
+
+      - name: Install Node.js ⚙️
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18.x
+      - name: Install NPM packages
+        run: npm ci
+
+      - name: Build project 🛠️
+        run: npm run build
+        env: 
+            IPFS_GATEWAY: https://ipfs.moonicorn.network/ipfs/
+            BACKEND_URL: https://backend.moonicorn.network
+
+      - name: Copy files
+        run: cp -rf ./dev-banners ./dist.browser && cp dnt-policy.txt dist.browser/
+
+      - name: Add .nojekyll file
+        run: touch ./dist.browser/.nojekyll
+
+      - name: Deploy 🚀🌕 (prod 🍩🐼) (moonicorn.network)
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          personal_token: ${{ secrets.ACCESS_TOKEN }}
+          publish_dir: ./dist.browser
+          external_repository: AmbireTech/adex-adview-v5-host-moonicorn
+          publish_branch: gh-pages
+          cname: viewmngr.moonicorn.network
+
+      - name: Deploy 🚀🌕 (prod 🍩🐼) (adex.network)
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          personal_token: ${{ secrets.ACCESS_TOKEN }}
+          publish_dir: ./dist.browser
+          external_repository: AmbireTech/adex-adview-v5-host-adex
+          publish_branch: gh-pages
+          cname: viewmngr.adex.network
