@@ -32,7 +32,7 @@ jobs:
       - name: Add .nojekyll file
         run: touch ./dist.browser/.nojekyll
 
-      - name: Deploy 🚀🌕 (staging 🧪🔬)
+      - name: Deploy 🚀🌕 (staging 🧪🔬) (moonicorn.network) 
         uses: peaceiris/actions-gh-pages@v3
         with:
           personal_token: ${{ secrets.ACCESS_TOKEN }}
@@ -40,4 +40,14 @@ jobs:
           external_repository: AmbireTech/adex-adview-v5-host-moonicorn
           publish_branch: gh-pages
           cname: viewmngr.moonicorn.network
+          destination_dir: ./staging
+
+      - name: Deploy 🚀🌕 (staging 🧪🔬) (adex.network) 
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          personal_token: ${{ secrets.ACCESS_TOKEN }}
+          publish_dir: ./dist.browser
+          external_repository: AmbireTech/adex-adview-v5-host-adex
+          publish_branch: gh-pages
+          cname: viewmngr.adex.network
           destination_dir: ./staging
