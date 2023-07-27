@@ -90,7 +90,7 @@ function getUnitHTML({ width, height }: AdViewManagerOptions, { clickUrl, creati
 
 export function getUnitHTMLWithEvents(options: AdViewManagerOptions, { clickUrl, creativeUrl, creativeMime, noImpression = false }): string {
 	const fetchUrl = `${options.backendURL}/viewmanager/bid`
-	const getBody = (evType) => `JSON.stringify({ event: '${evType}', reqId: '${options.reqId}', bidId: '${options.bidId}', impId: '${options.impId}', seatId: '${options.seatId}', ref: document.referrer })`
+	const getBody = (evType) => `JSON.stringify({ event: '${evType}', reqId: '${options.reqId}', bidId: '${options.bidId}', impId: '${options.impId}', seatId: '${options.seatId}', ref: document.referrer || 'no-referre' })`
 	const getFetchCode = (evType) => `var fetchOpts = { method: 'POST', headers: { 'content-type': 'application/json' }, body: ${getBody(evType)} }; fetch('${fetchUrl}',fetchOpts);`
 	const getTimeoutCode = (evType) => `setTimeout(function() {${getFetchCode(evType)}}, ${WAIT_FOR_IMPRESSION})`
 	return getUnitHTML(options, { clickUrl, creativeUrl, creativeMime, onLoadCode: noImpression ? '' : getTimeoutCode('IMPRESSION'), onClickCode: getFetchCode('CLICK') })
@@ -122,7 +122,7 @@ export class AdViewManager {
 			bidId,
 			impId,
 			seatId,
-			ref: document?.referrer || 'missing referrer'
+			ref: document?.referrer || 'no-referrer'
 		}
 
 		const querystr = Object.entries(queryParams).map(([key, value]) => `${key}=${encodeURIComponent(value)}`).join('&')
