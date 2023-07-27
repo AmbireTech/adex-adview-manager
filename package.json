@@ -38,5 +38,9 @@
     "webpack": "^5.88.2",
     "webpack-cli": "^5.1.4",
     "webpack-subresource-integrity": "^5.2.0-rc.1"
+  },
+  "engines": {
+    "npm": ">=9.5.1 <10",
+    "node": ">=18.16.0 <19"
   }
 }
