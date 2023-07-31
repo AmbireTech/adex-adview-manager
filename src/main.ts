@@ -51,18 +51,20 @@ function adexIcon(): string {
 	return `<a href="https://www.adex.network" target="_blank" alt="AdEx DSP" rel="noopener noreferrer"
 			style="position: absolute; top: 0; right: 0;"
 		>`
-		+ `<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="18px"
-			height="18px" viewBox="0 0 18 18" style="enable-background:new 0 0 18 18;" xml:space="preserve">
-			<style type="text/css">
-				.st0{fill:#FFFFFF;}
-				.st1{fill:#1B75BC;}
-			</style>
-			<defs>
-			</defs>
-			<rect class="st0" width="18" height="18"/>
-			<path class="st1" d="M14,12.1L10.9,9L14,5.9L12.1,4L9,7.1L5.9,4L4,5.9L7.1,9L4,12.1L5.9,14L9,10.9l3.1,3.1L14,12.1z M7.9,2L6.4,3.5
-				L7.9,5L9,3.9L10.1,5l1.5-1.5L10,1.9l-1-1L7.9,2 M7.9,16l-1.5-1.5L7.9,13L9,14.1l1.1-1.1l1.5,1.5L10,16.1l-1,1L7.9,16"/>
-   			</svg>`
+		+ 	`<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 18 18">
+				<g id="fav_icon_color" data-name="fav icon color" transform="translate(-245 -66)">
+				<rect id="base" width="18" height="18" transform="translate(245 66)" fill="#fcfcfc"/>
+				<g id="symbol" transform="translate(248.471 66)">
+					<g id="Group_1111" data-name="Group 1111" transform="translate(0 0)">
+					<path id="Path_3069" data-name="Path 3069" d="M3076.23,4996.448l3.469-3.469-3.469-3.47,2.059-2.059,3.472,3.472,3.472-3.472,2.059,2.059-3.469,3.47,3.469,3.469-2.062,2.062-3.469-3.469-3.469,3.469Z" transform="translate(-3076.23 -4983.978)" fill="#7298fe" fill-rule="evenodd"/>
+					<g id="Group_1110" data-name="Group 1110" transform="translate(2.293)">
+						<path id="Path_3067" data-name="Path 3067" d="M4080.259,3470.408l3.238-3.238,3.238,3.238-1.737,1.738-1.5-1.5-1.5,1.5Z" transform="translate(-4080.259 -3467.17)" fill="#2c5cde" fill-rule="evenodd"/>
+						<path id="Path_3068" data-name="Path 3068" d="M4080.259,9172.367l3.238,3.238,3.238-3.238L4085,9170.63l-1.5,1.5-1.5-1.5Z" transform="translate(-4080.259 -9157.605)" fill="#2c5cde" fill-rule="evenodd"/>
+					</g>
+					</g>
+				</g>
+				</g>
+			</svg>`
 		+ `</a>`
 }
 
@@ -88,7 +90,7 @@ function getUnitHTML({ width, height }: AdViewManagerOptions, { clickUrl, creati
 
 export function getUnitHTMLWithEvents(options: AdViewManagerOptions, { clickUrl, creativeUrl, creativeMime, noImpression = false }): string {
 	const fetchUrl = `${options.backendURL}/viewmanager/bid`
-	const getBody = (evType) => `JSON.stringify({ events: [{ type: '${evType}', reqid: '${options.reqId}', bidid: '${options.bidId}', impid: '${options.impId}', seatid: '${options.seatId}', ref: document.referrer }] })`
+	const getBody = (evType) => `JSON.stringify({ event: '${evType}', reqId: '${options.reqId}', bidId: '${options.bidId}', impId: '${options.impId}', seatId: '${options.seatId}', ref: document.referrer || 'no-referre' })`
 	const getFetchCode = (evType) => `var fetchOpts = { method: 'POST', headers: { 'content-type': 'application/json' }, body: ${getBody(evType)} }; fetch('${fetchUrl}',fetchOpts);`
 	const getTimeoutCode = (evType) => `setTimeout(function() {${getFetchCode(evType)}}, ${WAIT_FOR_IMPRESSION})`
 	return getUnitHTML(options, { clickUrl, creativeUrl, creativeMime, onLoadCode: noImpression ? '' : getTimeoutCode('IMPRESSION'), onClickCode: getFetchCode('CLICK') })
@@ -120,7 +122,7 @@ export class AdViewManager {
 			bidId,
 			impId,
 			seatId,
-			ref: document?.referrer
+			ref: document?.referrer || 'no-referrer'
 		}
 
 		const querystr = Object.entries(queryParams).map(([key, value]) => `${key}=${encodeURIComponent(value)}`).join('&')
