@@ -135,6 +135,8 @@ export class AdViewManager {
 	async getBidData(): Promise<any> {
 		const { creativeUrl, clickUrl, creativeMime } = await this.getCreative()
 
+		console.log({ creativeUrl, clickUrl })
+
 		// Return the results, with a fallback unit if there is one
 		if (creativeUrl && clickUrl) {
 			return {
