@@ -36,6 +36,8 @@ function initWithOptions(options, element, shouldCollapse = true) {
 	// Needed to sat targeting var adView.navigatorLanguage
 	options.navigatorLanguage = navigator.language;
 
+	console.log("element", element)
+
 	// construct the AdView manager with existing history, select the next ad unit, display it
 	const mgr = new AdViewManager((url, o) => fetch(url, o), options);
 	mgr
@@ -61,11 +63,14 @@ function initWithOptions(options, element, shouldCollapse = true) {
 				return;
 			}
 			if (u) {
+				console.log("ineer html", u.html)
 				element.innerHTML = u.html;
 			} else {
 				console.log(`AdEx: error getting creative data`);
 			}
+			console.log("window.parent", window.parent)
 			if (window.parent) {
+				console.log("window.parent", window.parent)
 				const height = u ? options.height : 0;
 				const m = { adexViewMangerHeight: height };
 				window.parent.postMessage(m, "*");
