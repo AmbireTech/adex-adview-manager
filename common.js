@@ -44,6 +44,10 @@ function initWithOptions(options, element, shouldCollapse = true) {
 		.getBidData()
 		.then((u) => {
 			const referrerNeeded = window.location !== window.parent.location;
+			console.log({referrerNeeded})
+			console.log("window.location", window.location)
+			console.log("window.parent.location", window.parent.location)
+			console.log("document.referrer", document.referrer)
 			if (
 				u
 				&& referrerNeeded
