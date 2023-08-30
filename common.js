@@ -43,10 +43,11 @@ function initWithOptions(options, element, shouldCollapse = true) {
 	mgr
 		.getBidData()
 		.then((u) => {
-			const referrerNeeded = window.location !== window.parent.location;
+			const referrerNeeded =  false //window.location !== window.parent.location;
 			console.log({referrerNeeded})
 			console.log("window.location", window.location)
 			console.log("window.parent.location", window.parent.location)
+			console.log("window.top.location", window.top.location)
 			console.log("document.referrer", document.referrer)
 			if (
 				u
