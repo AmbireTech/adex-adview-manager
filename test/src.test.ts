@@ -41,7 +41,7 @@ test('Get HTML tests', (t) => {
 	t.equals(targetEl.nodeName, 'A', 'Link is link')
 	t.ok(targetEl.hasAttribute('href'), 'Link leads to somewhere')
 	t.ok(targetEl.hasAttribute('onclick'), 'Link has onclick')
-	t.equals(targetEl.href, otherInfo.clickUrl, 'Link leads to the right URL')
+	t.equals(targetEl.href, otherInfo.clickUrl.replace('adex_PUBHOSTNAME', 'AdEx+(pub.com)'), 'Link leads to the right URL')
 
 	const image = targetEl.firstChild
 	t.equals(image.nodeName, 'IMG', 'Link contains an image')

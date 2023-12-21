@@ -49,5 +49,5 @@ jobs:
           publish_dir: ./dist.browser
           external_repository: AmbireTech/adex-adview-v5-host-adex
           publish_branch: gh-pages
-          cname: viewmngr.adex.network
+          cname: viewmngr.adex.network  
           destination_dir: ./staging
